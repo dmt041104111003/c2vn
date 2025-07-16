@@ -31,7 +31,7 @@ export default function MemberPage() {
             <div className="rounded-sm border border-white/20 bg-gray-800/50 p-8 backdrop-blur-sm">
               <h3 className="mb-4 text-2xl font-bold text-white">Join Our Team</h3>
               <p className="mb-6 text-gray-300">
-                Interested in contributing to the future of distributed work? We're always looking for passionate individuals.
+                Interested in contributing to the future of distributed work? We are always looking for passionate individuals.
               </p>
               <Link
                 href="mailto:cardano2vn@gmail.com"

@@ -1,5 +1,5 @@
 import Blog from "~/components/blog";
-import { blogs } from "~/databases/blogs";
+import { blogs } from "~/constants/blogs";
 
 export default function BlogsPage() {
   return (

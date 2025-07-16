@@ -3,7 +3,7 @@ import { images } from "~/public/images";
 export const members = [
   {
     id: 1,
-    color: "green",
+    color: "blue",
     name: "Tien Nguyen Anh",
     image: images.tien,
     role: "Blockchain Solution",
@@ -12,7 +12,7 @@ export const members = [
   },
   {
     id: 2,
-    color: "red",
+    color: "green",
     name: "Hieu Nguyen Van",
     image: images.hieu,
     role: "Blockchain Solution",
@@ -21,7 +21,7 @@ export const members = [
   },
   {
     id: 3,
-    color: "purple",
+    color: "pink",
     name: "Dung Phung Tien",
     image: images.dung,
     role: "Blockchain Solution",

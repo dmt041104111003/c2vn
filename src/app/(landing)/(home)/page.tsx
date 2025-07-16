@@ -7,6 +7,10 @@ import { images } from "~/public/images";
 import { motion } from "framer-motion";
 import Action from "~/components/action";
 import Timeline from "~/components/timeline";
+import { protocols } from "~/constants/protocols";
+import Protocol from "~/components/protocol";
+import { builds } from "~/constants/builds";
+import Build from "~/components/build";
 
 export default function HomePage() {
   return (
@@ -255,7 +259,144 @@ export default function HomePage() {
       </section>
       {/* Protocol */}
       <section id="protocol" className="relative flex min-h-screen items-center border-t border-white/10">
+        <section className="mx-auto w-5/6 max-w-screen-2xl px-6 py-20 lg:px-8">
+          <div className="relative">
+            <div className="mb-16">
+              <div className="mb-6 flex items-center gap-4">
+                <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-transparent"></div>
+                <h2 className="text-4xl font-bold text-white lg:text-5xl">The Cardano2vn Protocol</h2>
+              </div>
+              <p className="max-w-3xl text-xl text-gray-300">Three core components enabling trust for distributed work.</p>
+            </div>
+            <div className="grid max-w-none gap-16 lg:grid-cols-3">
+              {protocols.map((protocol, index) => {
+                return (
+                  <Protocol color={protocol.color} title={protocol.title} image={protocol.image} key={index} description={protocol.description} />
+                );
+              })}
+            </div>
+          </div>
+        </section>
         <Action title="Next" href="#cardano" />
+      </section>
+      {/* Cardano */}
+      <section id="cardano" className="relative flex min-h-screen items-center border-t border-white/10">
+        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+          <div className="grid items-center gap-20 lg:grid-cols-2">
+            <div className="relative">
+              <div className="mb-8 flex items-center gap-4">
+                <div className="h-1 w-12 bg-gradient-to-r from-orange-500 to-transparent"></div>
+                <h2 className="text-4xl font-bold text-white lg:text-5xl">Built on Cardano</h2>
+              </div>
+              <p className="mb-10 text-xl text-gray-300">Leveraging the security and sustainability of the Cardano blockchain.</p>
+              <div className="relative rounded-sm border border-white/20 bg-gray-100 p-8 text-gray-900 backdrop-blur-sm">
+                <Image
+                  alt="Cardano"
+                  loading="lazy"
+                  width="500"
+                  height="500"
+                  decoding="async"
+                  data-nimg="1"
+                  className="mb-8 h-12 brightness-125 filter text-transparent"
+                  src={images.cardano}
+                />
+                <p className="text-lg leading-relaxed text-gray-800">
+                  Andamio harnesses Cardanos proof-of-stake blockchain to provide secure, energy-efficient, and transparent credentialing. Every
+                  certificate and achievement is <strong className="text-black">immutably recorded</strong>, ensuring your credentials are always
+                  verifiable and portable.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid w-[180px] grid-cols-1 gap-6">
+              {builds.map(function (build, index) {
+                return <Build key={index} color={build.color} progress={build.progress} title={build.title} />;
+              })}
+            </div>
+          </div>
+        </section>
+        <Action title="FINAL" href="#cta" />
+      </section>
+
+      <section
+        id="cta"
+        className="relative flex min-h-screen items-center overflow-hidden border-t border-white/10 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+        <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-8">
+          <div className="grid items-center gap-16 lg:grid-cols-2">
+            <div>
+              <div className="mb-8 flex items-center gap-4">
+                <div className="h-1 w-12 bg-gradient-to-r from-white to-transparent"></div>
+                <h2 className="text-4xl font-bold text-white lg:text-5xl">Ready to enable trust for distributed work?</h2>
+              </div>
+              <p className="mb-10 text-xl leading-relaxed text-blue-100">
+                Join projects and contributors building the future of decentralized collaboration.
+              </p>
+              <div className="mb-10 flex flex-col gap-6 sm:flex-row">
+                <Link href="https://app.andamio.io/course/86affc4de251b0fb7636c376383bcebf6ca7ca426528f9b7a5adc298">
+                  <button className="inline-flex items-center justify-center whitespace-nowrap rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:text-success text-xl bg-white px-8 py-4 font-semibold text-blue-900 shadow-xl hover:bg-gray-100">
+                    Start with Cardano2VN
+                  </button>
+                </Link>
+                <Link href="https://docs.andamio.io/docs/">
+                  <button className="inline-flex items-center justify-center whitespace-nowrap rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-xl border-white/70 px-8 py-4 font-semibold text-white shadow-lg hover:bg-white/20 hover:text-white">
+                    View Documentation
+                  </button>
+                </Link>
+              </div>
+              <div className="grid gap-6 text-blue-200 sm:grid-cols-2">
+                <div className="flex items-center gap-4 rounded-sm border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+                  <span className="text-3xl">👤</span>
+                  <div>
+                    <div className="text-lg font-semibold text-white">Curious Users</div>
+                    <div className="text-sm">Start with Andamio 101</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 rounded-sm border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+                  <span className="text-3xl">👩‍💻</span>
+                  <div>
+                    <div className="text-lg font-semibold text-white">Developers</div>
+                    <div className="text-sm">Explore Documentation</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="relative hidden lg:block">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
+              <div className="relative p-8">
+                <div className="grid h-80 grid-cols-3 gap-4">
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm ">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm mt-8">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm -mt-4">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm ">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm mt-8">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm -mt-4">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm ">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm mt-8">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm -mt-4">
+                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
   );

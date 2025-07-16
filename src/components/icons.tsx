@@ -1,3 +1,5 @@
+import { cn } from "~/lib/utils";
+
 export const Paper = function ({ color }: { color: string }) {
   return (
     <svg className={`h-6 w-6 text-${color}-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +42,7 @@ export const Tech = function ({ color }: { color: string }) {
 
 export const Gmail = function ({ className }: { className?: string }) {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className={cn("h-4 w-4", className)} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         stroke-linecap="round"
         stroke-linejoin="round"
