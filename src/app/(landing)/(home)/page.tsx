@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import Action from "~/components/action";
 import Timeline from "~/components/timeline";
 
-export default function Home() {
+export default function HomePage() {
   return (
     <main>
       {/* Landing */}
@@ -251,7 +251,11 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <Action title="Scroll" />
+        <Action title="Scroll" href="#protocol" />
+      </section>
+      {/* Protocol */}
+      <section id="protocol" className="relative flex min-h-screen items-center border-t border-white/10">
+        <Action title="Next" href="#cardano" />
       </section>
     </main>
   );
