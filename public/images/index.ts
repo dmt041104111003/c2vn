@@ -12,6 +12,9 @@ import dung from "./members/dung.jpg";
 import khanh from "./members/khanh.jpg";
 import thanh from "./members/thanh.jpg";
 
+import cip68 from "./projects/cip68.png";
+import dualtarget from "./projects/dualtarget.png";
+
 export const images = {
   logo,
   cardano,
@@ -26,4 +29,7 @@ export const images = {
   dung,
   khanh,
   thanh,
+
+  cip68,
+  dualtarget,
 };
