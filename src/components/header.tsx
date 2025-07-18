@@ -7,9 +7,35 @@ import { routers } from "~/constants/routers";
 import { images } from "~/public/images";
 import { motion } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { User as UserIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const { data: session } = useSession();
+  const [missingCount, setMissingCount] = useState(0);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      const skip = localStorage.getItem("personal_info_skip");
+      const info = localStorage.getItem("personal_info");
+      if (!skip) {
+        let count = 0;
+        if (!info) count = 4;
+        else {
+          const data = JSON.parse(info);
+          if (!data.name) count++;
+          if (!data.dob) count++;
+          if (!data.phone) count++;
+          if (!data.hometown) count++;
+        }
+        setMissingCount(count);
+      } else {
+        setMissingCount(4);
+      }
+    } else {
+      setMissingCount(0);
+    }
+  }, [session]);
 
   return (
     <motion.div
@@ -59,9 +85,16 @@ export default function Header() {
             <div className="flex items-center gap-3">
               {session ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-300">
-                    Signed in as {session.user?.email}
-                  </span>
+                  <Link href="/profile" className="relative flex items-center">
+                    {session.user?.image ? (
+                      <img src={session.user.image} alt="avatar" className="w-8 h-8 rounded-full border border-white" />
+                    ) : (
+                      <UserIcon className="w-8 h-8 text-white" />
+                    )}
+                    {missingCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 border border-white">{missingCount}</span>
+                    )}
+                  </Link>
                   <button
                     onClick={() => signOut()}
                     className="font-medium text-gray-300 transition-colors duration-200 hover:text-white"
@@ -71,7 +104,7 @@ export default function Header() {
                 </div>
               ) : (
                 <button
-                  onClick={() => signIn("google")}
+                  onClick={() => signIn("google", { callbackUrl: "/" })}
                   className="inline-flex items-center gap-2 rounded-sm border border-white/30 bg-gray-800/50 px-4 py-2 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:border-white/50 hover:bg-gray-700/50"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24">

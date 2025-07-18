@@ -11,8 +11,38 @@ import { protocols } from "~/constants/protocols";
 import Protocol from "~/components/protocol";
 import { builds } from "~/constants/builds";
 import Build from "~/components/build";
+import { useSession } from "next-auth/react";
+import PersonalInfoForm from "~/components/PersonalInfoForm";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
+  const { data: session } = useSession();
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      const info = localStorage.getItem("personal_info");
+      if (!info) setShowForm(true);
+    }
+  }, [session]);
+
+  if (showForm && session?.user?.email) {
+    return (
+      <PersonalInfoForm
+        email={session.user.email}
+        name={session.user.name || ""}
+        onSubmit={data => {
+          localStorage.setItem("personal_info", JSON.stringify(data));
+          setShowForm(false);
+        }}
+        onSkip={() => {
+          localStorage.setItem("personal_info_skip", "1");
+          setShowForm(false);
+        }}
+      />
+    );
+  }
+
   return (
     <main>
       {/* Landing */}
