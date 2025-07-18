@@ -18,27 +18,85 @@ import { useState, useEffect } from "react";
 export default function HomePage() {
   const { data: session } = useSession();
   const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user?.email) {
-      const info = localStorage.getItem("personal_info");
-      if (!info) setShowForm(true);
-    }
+    const checkProfile = async () => {
+      if (!session?.user?.email) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const { profile } = await response.json();
+          if (!profile) {
+            setShowForm(true);
+          }
+        } else {
+          setShowForm(true);
+        }
+      } catch (error) {
+        console.error('Error checking profile:', error);
+        setShowForm(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkProfile();
   }, [session]);
+
+  const handleSubmit = async (data: { name: string; dob: string; phone: string; hometown: string; email: string }) => {
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          dob: data.dob,
+          phone: data.phone,
+          hometown: data.hometown,
+        }),
+      });
+
+      if (response.ok) {
+        setShowForm(false);
+      } else {
+        console.error('Failed to save profile');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
+  };
+
+  const handleSkip = () => {
+    setShowForm(false);
+  };
+
+  if (isLoading) {
+    return (
+      <main>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center text-white">
+            <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+            <p className="text-gray-300">Please wait while we check your profile.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (showForm && session?.user?.email) {
     return (
       <PersonalInfoForm
         email={session.user.email}
         name={session.user.name || ""}
-        onSubmit={data => {
-          localStorage.setItem("personal_info", JSON.stringify(data));
-          setShowForm(false);
-        }}
-        onSkip={() => {
-          localStorage.setItem("personal_info_skip", "1");
-          setShowForm(false);
-        }}
+        onSubmit={handleSubmit}
+        onSkip={handleSkip}
       />
     );
   }
@@ -250,21 +308,20 @@ export default function HomePage() {
                                 stroke-width="2"
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                className="lucide lucide-check-circle h-8 w-8"
+                                className="lucide lucide-shield h-8 w-8"
                               >
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <path d="m9 11 3 3L22 4"></path>
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"></path>
                               </svg>
                             </div>
                             <div>
-                              <h3 className="mb-2 text-2xl font-bold text-white">Proof</h3>
+                              <h3 className="mb-2 text-2xl font-bold text-white">Protection</h3>
                               <div className="h-0.5 w-16 bg-purple-500"></div>
                             </div>
                           </div>
-                          <p className="mb-3 text-base font-semibold text-purple-400">Do we trust that others can do what they say they can do?</p>
+                          <p className="mb-3 text-base font-semibold text-purple-400">Do we trust the systems we are using?</p>
                           <p className="text-base leading-relaxed text-gray-300">
-                            Discovery and connection tools that make credentials portable and verifiable, enabling
-                            <strong className="text-white"> global opportunities through local participation</strong>.
+                            Secure infrastructure and governance mechanisms that protect participants and ensure
+                            <strong className="text-white"> transparent, accountable operations</strong>.
                           </p>
                         </div>
                       </div>
@@ -276,7 +333,7 @@ export default function HomePage() {
                     <div className="hidden w-5/12 pl-8 lg:block">
                       <div className="text-right opacity-40">
                         <div className="text-6xl font-bold text-purple-500/30">03</div>
-                        <div className="mt-2 text-purple-300/50">Verification</div>
+                        <div className="mt-2 text-purple-300/50">Protection</div>
                       </div>
                     </div>
                   </div>
@@ -285,145 +342,56 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        <Action title="Scroll" href="#protocol" />
       </section>
-      {/* Protocol */}
-      <section id="protocol" className="relative flex min-h-screen items-center border-t border-white/10">
-        <section className="mx-auto w-5/6 max-w-screen-2xl px-6 py-20 lg:px-8">
+      {/* Protocols */}
+      <section id="protocols" className="relative flex min-h-screen items-center overflow-hidden border-t border-white/10 py-20">
+        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
           <div className="relative">
-            <div className="mb-16">
-              <div className="mb-6 flex items-center gap-4">
+            <header className="mb-16">
+              <div className="mb-4 flex items-center gap-4">
                 <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-transparent"></div>
-                <h2 className="text-4xl font-bold text-white lg:text-5xl">The Cardano2vn Protocol</h2>
+                <h2 className="text-3xl font-bold text-white lg:text-4xl">Trust Protocols</h2>
               </div>
-              <p className="max-w-3xl text-xl text-gray-300">Three core components enabling trust for distributed work.</p>
-            </div>
-            <div className="grid max-w-none gap-16 lg:grid-cols-3">
-              {protocols.map((protocol, index) => {
-                return (
-                  <Protocol color={protocol.color} title={protocol.title} image={protocol.image} key={index} description={protocol.description} />
-                );
-              })}
-            </div>
-          </div>
-        </section>
-        <Action title="Next" href="#cardano" />
-      </section>
-      {/* Cardano */}
-      <section id="cardano" className="relative flex min-h-screen items-center border-t border-white/10">
-        <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
-          <div className="grid items-center gap-20 lg:grid-cols-2">
-            <div className="relative">
-              <div className="mb-8 flex items-center gap-4">
-                <div className="h-1 w-12 bg-gradient-to-r from-orange-500 to-transparent"></div>
-                <h2 className="text-4xl font-bold text-white lg:text-5xl">Built on Cardano</h2>
-              </div>
-              <p className="mb-10 text-xl text-gray-300">Leveraging the security and sustainability of the Cardano blockchain.</p>
-              <div className="relative rounded-sm border border-white/20 bg-gray-100 p-8 text-gray-900 backdrop-blur-sm">
-                <Image
-                  alt="Cardano"
-                  loading="lazy"
-                  width="500"
-                  height="500"
-                  decoding="async"
-                  data-nimg="1"
-                  className="mb-8 h-12 brightness-125 filter text-transparent"
-                  src={images.cardano}
-                />
-                <p className="text-lg leading-relaxed text-gray-800">
-                  Andamio harnesses Cardanos proof-of-stake blockchain to provide secure, energy-efficient, and transparent credentialing. Every
-                  certificate and achievement is <strong className="text-black">immutably recorded</strong>, ensuring your credentials are always
-                  verifiable and portable.
-                </p>
-              </div>
-            </div>
-            <div className="mx-auto grid w-[180px] grid-cols-1 gap-6">
-              {builds.map(function (build, index) {
-                return <Build key={index} color={build.color} progress={build.progress} title={build.title} />;
-              })}
-            </div>
-          </div>
-        </section>
-        <Action title="FINAL" href="#cta" />
-      </section>
-
-      <section
-        id="cta"
-        className="relative flex min-h-screen items-center overflow-hidden border-t border-white/10 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-        <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-8">
-          <div className="grid items-center gap-16 lg:grid-cols-2">
-            <div>
-              <div className="mb-8 flex items-center gap-4">
-                <div className="h-1 w-12 bg-gradient-to-r from-white to-transparent"></div>
-                <h2 className="text-4xl font-bold text-white lg:text-5xl">Ready to enable trust for distributed work?</h2>
-              </div>
-              <p className="mb-10 text-xl leading-relaxed text-blue-100">
-                Join projects and contributors building the future of decentralized collaboration.
+              <p className="max-w-3xl text-lg text-gray-300">
+                Building trust through decentralized protocols that enable secure, transparent, and collaborative work environments.
               </p>
-              <div className="mb-10 flex flex-col gap-6 sm:flex-row">
-                <Link href="https://app.andamio.io/course/86affc4de251b0fb7636c376383bcebf6ca7ca426528f9b7a5adc298">
-                  <button className="inline-flex items-center justify-center whitespace-nowrap rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:text-success text-xl bg-white px-8 py-4 font-semibold text-blue-900 shadow-xl hover:bg-gray-100">
-                    Start with Cardano2VN
-                  </button>
-                </Link>
-                <Link href="https://docs.andamio.io/docs/">
-                  <button className="inline-flex items-center justify-center whitespace-nowrap rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-xl border-white/70 px-8 py-4 font-semibold text-white shadow-lg hover:bg-white/20 hover:text-white">
-                    View Documentation
-                  </button>
-                </Link>
-              </div>
-              <div className="grid gap-6 text-blue-200 sm:grid-cols-2">
-                <div className="flex items-center gap-4 rounded-sm border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
-                  <span className="text-3xl">👤</span>
-                  <div>
-                    <div className="text-lg font-semibold text-white">Curious Users</div>
-                    <div className="text-sm">Start with Andamio 101</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 rounded-sm border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
-                  <span className="text-3xl">👩‍💻</span>
-                  <div>
-                    <div className="text-lg font-semibold text-white">Developers</div>
-                    <div className="text-sm">Explore Documentation</div>
-                  </div>
-                </div>
-              </div>
+            </header>
+            <div className="grid gap-8 lg:grid-cols-2">
+              {protocols.map((protocol, index) => (
+                <Protocol
+                  key={index}
+                  title={protocol.title}
+                  description={protocol.description}
+                  image={protocol.image}
+                  color={protocol.color}
+                />
+              ))}
             </div>
-            <div className="relative hidden lg:block">
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-white/5"></div>
-              <div className="relative p-8">
-                <div className="grid h-80 grid-cols-3 gap-4">
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm ">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm mt-8">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm -mt-4">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm ">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm mt-8">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm -mt-4">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm ">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm mt-8">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                  <div className="rounded-sm border border-white/20 bg-white/10 backdrop-blur-sm -mt-4">
-                    <div className="h-full w-full rounded-sm bg-gradient-to-br from-blue-400/20 to-transparent"></div>
-                  </div>
-                </div>
+          </div>
+        </div>
+      </section>
+      {/* Builds */}
+      <section id="builds" className="relative flex min-h-screen items-center overflow-hidden border-t border-white/10 py-20">
+        <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+          <div className="relative">
+            <header className="mb-16">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="h-1 w-12 bg-gradient-to-r from-green-500 to-transparent"></div>
+                <h2 className="text-3xl font-bold text-white lg:text-4xl">What We Build</h2>
               </div>
+              <p className="max-w-3xl text-lg text-gray-300">
+                Innovative solutions that bridge traditional systems with blockchain technology for real-world applications.
+              </p>
+            </header>
+            <div className="grid gap-8 lg:grid-cols-3">
+              {builds.map((build, index) => (
+                <Build
+                  key={index}
+                  title={build.title}
+                  progress={build.progress}
+                  color={build.color}
+                />
+              ))}
             </div>
           </div>
         </div>

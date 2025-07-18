@@ -16,26 +16,36 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.email) {
-      const skip = localStorage.getItem("personal_info_skip");
-      const info = localStorage.getItem("personal_info");
-      if (!skip) {
-        let count = 0;
-        if (!info) count = 4;
-        else {
-          const data = JSON.parse(info);
-          if (!data.name) count++;
-          if (!data.dob) count++;
-          if (!data.phone) count++;
-          if (!data.hometown) count++;
+    const checkProfile = async () => {
+      if (!session?.user?.email) {
+        setMissingCount(0);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const { profile } = await response.json();
+          if (!profile) {
+            setMissingCount(4);
+          } else {
+            let count = 0;
+            if (!profile.name) count++;
+            if (!profile.dob) count++;
+            if (!profile.phone) count++;
+            if (!profile.hometown) count++;
+            setMissingCount(count);
+          }
+        } else {
+          setMissingCount(4);
         }
-        setMissingCount(count);
-      } else {
+      } catch (error) {
+        console.error('Error checking profile:', error);
         setMissingCount(4);
       }
-    } else {
-      setMissingCount(0);
-    }
+    };
+
+    checkProfile();
   }, [session]);
 
   const toggleMenu = () => {
