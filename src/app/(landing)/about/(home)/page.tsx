@@ -5,11 +5,11 @@ import { abouts } from "~/constants/abouts";
 export default function AboutPage() {
   return (
     <main className="relative pt-20">
-      <Title
-        title="About Cardano2vn"
-        description=" Learn about Andamio's vision, team, and technology, and explore how we're transforming the future of collaboration and learning."
-      />
-      <section className="mx-auto max-w-7xl px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+        <Title
+          title="About Cardano2vn"
+          description=" Learn about Andamio's vision, team, and technology, and explore how we're transforming the future of collaboration and learning."
+        />
         <div className="pb-20">
           <div className="relative mb-16">
             <p className="mb-12 text-lg leading-relaxed text-gray-300">

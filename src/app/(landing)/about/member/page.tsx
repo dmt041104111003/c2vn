@@ -7,11 +7,11 @@ import { members } from "~/constants/members";
 export default function MemberPage() {
   return (
     <main className="relative pt-20">
-      <Title
-        title="Founding Team"
-        description="Our diverse team combines expertise in education, blockchain development, product management, and community building. Together, we're creating the infrastructure for trust-based distributed work."
-      />
-      <section className="mx-auto max-w-7xl px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+        <Title
+          title="Founding Team"
+          description="Our diverse team combines expertise in education, blockchain development, product management, and community building. Together, we're creating the infrastructure for trust-based distributed work."
+        />
         <div className="mx-auto pb-20">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {members.map(function (member, index) {

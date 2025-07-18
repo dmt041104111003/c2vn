@@ -8,8 +8,8 @@ import { skills } from "~/constants/skills";
 export default function TechnologyPage() {
   return (
     <main className="relative pt-20">
-      <Title title="Our Technology" description="Discover how Andamio's innovative tools are shaping the future of decentralized work." />
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+        <Title title="Our Technology" description="Discover how Andamio's innovative tools are shaping the future of decentralized work." />
         <div className="pb-20">
           {/* About */}
           <section className="mb-16 text-left">
