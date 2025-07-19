@@ -298,40 +298,168 @@ fi`,
   ],
 };
 
-export const introductionContent: DocContent = {
-  title: "Introduction",
-  description: "Welcome to the Cardano documentation. This guide will help you understand the fundamentals of Cardano blockchain and get started with stake pool operations.",
-  alerts: [
-    {
-      type: "info",
-      title: "Getting Started",
-      content: "This documentation is designed for both beginners and experienced developers who want to work with Cardano.",
-    },
-  ],
+export interface DocDocument {
+  id: string;
+  documentCode: string;
+  name: string;
+  description: string;
+  category: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  readTime: string;
+  lastUpdated: string;
+  demoImage: string;
+  author: string;
+  views: number;
+  likes: number;
+}
+
+export const docDocuments: DocDocument[] = [
+  {
+    id: "1",
+    documentCode: "DOC-001",
+    name: "Getting Started with Cardano",
+    description: "Learn the fundamentals of Cardano blockchain, its architecture, and how to get started with development.",
+    category: "Getting Started",
+    difficulty: "beginner",
+    readTime: "15 min",
+    lastUpdated: "2025-01-15",
+    demoImage: "/images/docs/getting-started.jpg",
+    author: "Cardano Team",
+    views: 1250,
+    likes: 89,
+  },
+  {
+    id: "2",
+    documentCode: "DOC-002",
+    name: "Plutus Smart Contracts",
+    description: "Deep dive into Plutus smart contract development with practical examples and best practices.",
+    category: "Smart Contracts",
+    difficulty: "intermediate",
+    readTime: "45 min",
+    lastUpdated: "2025-01-10",
+    demoImage: "/images/docs/plutus.jpg",
+    author: "IOHK",
+    views: 890,
+    likes: 156,
+  },
+  {
+    id: "3",
+    documentCode: "DOC-003",
+    name: "Marlowe for Financial Contracts",
+    description: "Build financial smart contracts using Marlowe, Cardano's domain-specific language for DeFi.",
+    category: "DeFi",
+    difficulty: "intermediate",
+    readTime: "30 min",
+    lastUpdated: "2025-01-08",
+    demoImage: "/images/docs/marlowe.jpg",
+    author: "Marlowe Team",
+    views: 567,
+    likes: 78,
+  },
+  {
+    id: "4",
+    documentCode: "DOC-004",
+    name: "Native Token Creation",
+    description: "Step-by-step guide to creating and managing native tokens on Cardano blockchain.",
+    category: "Tokens",
+    difficulty: "beginner",
+    readTime: "20 min",
+    lastUpdated: "2025-01-05",
+    demoImage: "/images/docs/tokens.jpg",
+    author: "Cardano Foundation",
+    views: 1200,
+    likes: 92,
+  },
+  {
+    id: "5",
+    documentCode: "DOC-005",
+    name: "Stake Pool Operation",
+    description: "Complete guide to running a stake pool, including setup, maintenance, and optimization.",
+    category: "Staking",
+    difficulty: "advanced",
+    readTime: "60 min",
+    lastUpdated: "2025-01-03",
+    demoImage: "/images/docs/stake-pool.jpg",
+    author: "Stake Pool Alliance",
+    views: 445,
+    likes: 67,
+  },
+  {
+    id: "6",
+    documentCode: "DOC-006",
+    name: "Hydra Scaling Solution",
+    description: "Understanding Cardano's Hydra layer-2 scaling solution and its implementation.",
+    category: "Scaling",
+    difficulty: "advanced",
+    readTime: "40 min",
+    lastUpdated: "2025-01-01",
+    demoImage: "/images/docs/hydra.jpg",
+    author: "IOHK Research",
+    views: 334,
+    likes: 45,
+  },
+  {
+    id: "7",
+    documentCode: "DOC-007",
+    name: "DApp Development Guide",
+    description: "Build decentralized applications on Cardano with comprehensive development tutorials.",
+    category: "Development",
+    difficulty: "intermediate",
+    readTime: "50 min",
+    lastUpdated: "2024-12-28",
+    demoImage: "/images/docs/dapp.jpg",
+    author: "Developer Community",
+    views: 678,
+    likes: 123,
+  },
+  {
+    id: "8",
+    documentCode: "DOC-008",
+    name: "Cardano Governance",
+    description: "Understanding Cardano's governance model, voting mechanisms, and participation.",
+    category: "Governance",
+    difficulty: "intermediate",
+    readTime: "25 min",
+    lastUpdated: "2024-12-25",
+    demoImage: "/images/docs/governance.jpg",
+    author: "Cardano Foundation",
+    views: 456,
+    likes: 89,
+  },
+];
+
+export const docListCategories = [
+  { id: "all", title: "All Documents", count: docDocuments.length },
+  { id: "getting-started", title: "Getting Started", count: 1 },
+  { id: "smart-contracts", title: "Smart Contracts", count: 1 },
+  { id: "defi", title: "DeFi", count: 1 },
+  { id: "tokens", title: "Tokens", count: 1 },
+  { id: "staking", title: "Staking", count: 1 },
+  { id: "scaling", title: "Scaling", count: 1 },
+  { id: "development", title: "Development", count: 1 },
+  { id: "governance", title: "Governance", count: 1 },
+];
+
+export const introductionContent = {
+  title: "Welcome to Cardano Documentation",
+  content: "Learn about Cardano and build with confidence. Our comprehensive documentation covers everything from basic concepts to advanced development techniques.",
   sections: [
     {
-      title: "What is Cardano?",
-      content: "Cardano is a blockchain platform for changemakers, innovators, and visionaries, with the tools and technologies required to create possibility for the many, as well as the few, and bring about positive global change.",
+      title: "Getting Started",
+      description: "New to Cardano? Start here with the basics.",
+      link: "/docs/getting-started"
     },
     {
-      title: "Key Features",
-      content: "",
-      sections: [
-        {
-          title: "Proof of Stake",
-          content: "Cardano uses Ouroboros, a proof-of-stake consensus mechanism that is more energy-efficient than proof-of-work systems.",
-        },
-        {
-          title: "Smart Contracts",
-          content: "Cardano supports smart contracts through Plutus, a functional programming language based on Haskell.",
-        },
-        {
-          title: "Decentralization",
-          content: "Cardano is designed to be truly decentralized, with no single point of control or failure.",
-        },
-      ],
+      title: "Smart Contracts",
+      description: "Learn to build smart contracts with Plutus.",
+      link: "/docs/smart-contracts"
     },
-  ],
+    {
+      title: "DeFi Development",
+      description: "Create financial applications with Marlowe.",
+      link: "/docs/defi"
+    }
+  ]
 };
 
 export const installationContent: DocContent = {
