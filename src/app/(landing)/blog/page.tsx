@@ -20,6 +20,7 @@ export default function BlogsPage() {
               action={blog.action}
               title={blog.title}
               author={blog.author}
+              slug={blog.slug}
               datetime={new Date(blog.date).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",

@@ -448,13 +448,13 @@ export const introductionContent = {
       title: "Getting Started",
       description: "New to Cardano? Start here with the basics.",
       link: "/docs/getting-started"
-    },
-    {
-      title: "Smart Contracts",
+        },
+        {
+          title: "Smart Contracts",
       description: "Learn to build smart contracts with Plutus.",
       link: "/docs/smart-contracts"
-    },
-    {
+        },
+        {
       title: "DeFi Development",
       description: "Create financial applications with Marlowe.",
       link: "/docs/defi"
