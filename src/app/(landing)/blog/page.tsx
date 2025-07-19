@@ -1,35 +1,33 @@
-"use client";
-
-import { useState } from "react";
-import BlogSidebar from "~/components/blog/blog-sidebar";
-import BlogHeader from "~/components/blog/blog-header";
-import BlogContent from "~/components/blog/blog-content";
+import Blog from "~/components/blog";
+import Title from "~/components/title";
+import { blogs } from "~/constants/blogs";
 
 export default function BlogsPage() {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  const toggleMobileSidebar = () => {
-    setIsMobileSidebarOpen(!isMobileSidebarOpen);
-  };
-
   return (
     <main className="relative pt-20">
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-950 via-gray-950 to-gray-900">
-        {isMobileSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setIsMobileSidebarOpen(false)}
-          />
-        )}
-        <div className={`fixed lg:relative z-50 lg:z-auto transform transition-transform duration-300 ease-in-out ${
-          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}>
-          <BlogSidebar onClose={() => setIsMobileSidebarOpen(false)} />
-        </div>
-        <div className="flex-1 w-full">
-          <BlogHeader onMenuClick={toggleMobileSidebar} />
-          <BlogContent />
-        </div>
+      <div className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+        {/* Title */}
+        <Title
+          title="Cardano2vn Blog"
+          description="Insights, updates, and stories from the Andamio ecosystem. Explore our journey building trust protocols for distributed work."
+        />
+        {/* Content */}
+        <section className="grid gap-8 lg:grid-cols-2">
+          {blogs.map((blog) => (
+            <Blog
+              key={blog.id}
+              image={blog.image}
+              action={blog.action}
+              title={blog.title}
+              author={blog.author}
+              datetime={new Date(blog.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            />
+          ))}
+        </section>
       </div>
     </main>
   );
