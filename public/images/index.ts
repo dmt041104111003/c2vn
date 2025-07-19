@@ -11,7 +11,8 @@ import hieu from "./members/hieu.jpg";
 import dung from "./members/dung.jpg";
 import khanh from "./members/khanh.jpg";
 import thanh from "./members/thanh.jpg";
-
+import tung from "./members/tung.png";
+import nghia from "./members/nghia.png";
 import cip68 from "./projects/cip68.png";
 import dualtarget from "./projects/dualtarget.png";
 
@@ -29,6 +30,8 @@ export const images = {
   dung,
   khanh,
   thanh,
+  tung,
+  nghia,
 
   cip68,
   dualtarget,

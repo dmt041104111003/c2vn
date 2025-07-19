@@ -2,7 +2,7 @@ export const navbars = [
   {
     id: 1,
     title: "Docs",
-    href: "/doc",
+    href: "/docs",
   },
   {
     id: 2,

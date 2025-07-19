@@ -1,10 +1,27 @@
+"use client";
+
 import Link from "next/link";
 import { Gmail } from "~/components/icons";
 import Member from "~/components/member";
+import MemberModal from "~/components/MemberModal";
 import Title from "~/components/title";
 import { members } from "~/constants/members";
+import { useState } from "react";
 
 export default function MemberPage() {
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleMemberClick = (member: any) => {
+    setSelectedMember(member);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedMember(null);
+  };
+
   return (
     <main className="relative pt-20">
       <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
@@ -23,6 +40,7 @@ export default function MemberPage() {
                   description={member.description}
                   role={member.role}
                   image={member.image}
+                  onClick={() => handleMemberClick(member)}
                 />
               );
             })}
@@ -44,6 +62,15 @@ export default function MemberPage() {
           </div>
         </div>
       </section>
+
+      {/* Modal */}
+      {selectedMember && (
+        <MemberModal
+          member={selectedMember}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </main>
   );
 }

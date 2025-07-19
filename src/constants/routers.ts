@@ -3,4 +3,5 @@ export const routers = {
   about: "/about",
   member: "/about/member",
   technology: "/about/technology",
+  login: "/login",
 };
