@@ -15,14 +15,17 @@ export default function ProfileSidebar() {
               src={session.user.image} 
               alt="Profile" 
               className="w-20 h-20 rounded-full border-2 border-white/20 shadow-lg mx-auto mb-3"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
             />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-white/20 shadow-lg mx-auto mb-3 flex items-center justify-center">
-              <span className="text-xl font-bold text-white">
-                {session?.user?.name?.charAt(0) || "U"}
-              </span>
-            </div>
-          )}
+          ) : null}
+          <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-white/20 shadow-lg mx-auto mb-3 flex items-center justify-center ${session?.user?.image ? 'hidden' : ''}`}>
+            <span className="text-xl font-bold text-white">
+              {session?.user?.name?.charAt(0) || "U"}
+            </span>
+          </div>
         </div>
         <div className="mt-6 pt-4 border-t border-white/10">
           <h4 className="text-sm font-medium text-white mb-3">Course Statistics</h4>

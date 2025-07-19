@@ -107,10 +107,17 @@ export default function Header() {
                 <div className="flex items-center gap-3">
                   <Link href="/profile" className="relative flex items-center">
                     {session.user?.image ? (
-                      <img src={session.user.image} alt="avatar" className="w-8 h-8 rounded-full border border-white" />
-                    ) : (
-                      <UserIcon className="w-8 h-8 text-white" />
-                    )}
+                      <img 
+                        src={session.user.image} 
+                        alt="avatar" 
+                        className="w-8 h-8 rounded-full border border-white"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <UserIcon className={`w-8 h-8 text-white ${session.user?.image ? 'hidden' : ''}`} />
                     {missingCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5 border border-white">{missingCount}</span>
                     )}
@@ -222,10 +229,17 @@ export default function Header() {
                       className="flex items-center gap-3 py-2"
                     >
                       {session.user?.image ? (
-                        <img src={session.user.image} alt="avatar" className="w-8 h-8 rounded-full border border-white" />
-                      ) : (
-                        <UserIcon className="w-8 h-8 text-white" />
-                      )}
+                        <img 
+                          src={session.user.image} 
+                          alt="avatar" 
+                          className="w-8 h-8 rounded-full border border-white"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <UserIcon className={`w-8 h-8 text-white ${session.user?.image ? 'hidden' : ''}`} />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-white">
                           {session.user?.name || "User"}
