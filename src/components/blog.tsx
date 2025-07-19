@@ -7,19 +7,21 @@ export default function Blog({
   title,
   author,
   datetime,
+  slug,
 }: {
   title: string;
   image: string | StaticImageData;
   action: string;
   author: string;
   datetime: string;
+  slug: string;
 }) {
   return (
     <div className="rounded-sm text-card-foreground px-5 py-3 group relative overflow-hidden border border-white/20 bg-gray-800/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:border-white/40 hover:shadow-2xl">
-      <Link className="block" href="">
+      <Link className="block" href={`/blog/${slug}`}>
         <div className="relative aspect-video overflow-hidden">
           <Image
-            alt="Beyond Financial Sovereignty: Democratizing Treasury Administration"
+            alt={title}
             loading="lazy"
             width="800"
             height="400"
