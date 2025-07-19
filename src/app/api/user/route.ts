@@ -6,10 +6,10 @@ import { getServerSession } from "next-auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const isAllowed = await isAdmin();
-    if (!isAllowed) {
-      return NextResponse.json({ error: "You dont have permission" }, { status: 401 });
-    }
+    // const isAllowed = await isAdmin();
+    // if (!isAllowed) {
+    //   return NextResponse.json({ error: "You dont have permission" }, { status: 401 });
+    // }
     const users = await prisma.user.findMany({
       include: {
         roles: true,

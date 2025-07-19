@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;
+
   try {
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         profile: true,
         roles: {
@@ -77,6 +82,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
+
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
