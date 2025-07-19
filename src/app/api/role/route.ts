@@ -2,10 +2,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '~/lib/prisma';
-
+import { isAdmin,isAuthor,isEditor,isUser,isGuest } from '../check-role';
 
 export async function GET(): Promise<NextResponse> {
   try {
+
     const roles = await prisma.role.findMany({
       include: {
         permissions: {

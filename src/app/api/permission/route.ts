@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
-import type { NextApiRequest, NextApiResponse } from "next";
+
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    
     const permissions = await prisma.permission.findMany();
     return NextResponse.json({
         message: "Permissions fetched successfully",

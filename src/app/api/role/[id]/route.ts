@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "~/lib/prisma";
-
+import { getServerSession } from "next-auth";
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession();
+        
+        if (!session?.user?.email) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
     const { id } = params;
     const { name, description, is_default, permissionIds } = await request.json();
 
