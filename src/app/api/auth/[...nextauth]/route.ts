@@ -59,17 +59,28 @@ const handler = NextAuth({
             console.log("[NextAuth] Existing Cardano Wallet user signed in:", dbUser.wallet);
           }
 
-          await prisma.session.create({
-            data: {
-              userId: dbUser.id,
-              accessTime: new Date(),
-              lastAccess: new Date(),
-            }
+          const existingSession = await prisma.session.findFirst({
+            where: { userId: dbUser.id }
           });
 
-          console.log("[NextAuth] Session saved to database for user:", dbUser.wallet);
+          if (existingSession) {
+            await prisma.session.update({
+              where: { id: existingSession.id },
+              data: { lastAccess: new Date() }
+            });
+            console.log("[NextAuth] Session lastAccess updated for user:", dbUser.wallet);
+          } else {
+            await prisma.session.create({
+              data: {
+                userId: dbUser.id,
+                accessTime: new Date(),
+                lastAccess: new Date(),
+              }
+            });
+            console.log("[NextAuth] New session created for user:", dbUser.wallet);
+          }
           
-          return { id: dbUser.id };
+          return true;
         } catch (error) {
           console.error("[NextAuth] Error in Cardano Wallet signIn callback:", error);
           throw new Error("Lỗi xác thực ví Cardano, vui lòng thử lại.");
