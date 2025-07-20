@@ -11,6 +11,7 @@ import { images } from "~/public/images";
 import { routers } from "~/constants/routers";
 import CardanoWalletButton from "~/components/CardanoWalletButton";
 import { useUser } from "~/hooks/useUser";
+import { WalletAvatar } from "~/components/WalletAvatar";
 
 export default function Header() {
   const { data: session } = useSession();
@@ -85,18 +86,11 @@ export default function Header() {
               {session ? (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    {session.user?.image ? (
-                      <img 
-                        src={session.user.image} 
-                        alt="avatar" 
-                        className="w-8 h-8 rounded-full border border-white"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <UserIcon className={`w-8 h-8 text-white ${session.user?.image ? 'hidden' : ''}`} />
+                    <WalletAvatar 
+                      address={session.user?.address || null}
+                      size={32}
+                      className="border border-white"
+                    />
                     <span className="text-sm text-white font-mono">
                       {formatWalletAddress(session.user?.address || "")}
                     </span>
@@ -187,18 +181,11 @@ export default function Header() {
                 {session ? (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {session.user?.image ? (
-                        <img 
-                          src={session.user.image} 
-                          alt="avatar" 
-                          className="w-8 h-8 rounded-full border border-white"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                          }}
-                        />
-                      ) : null}
-                      <UserIcon className={`w-8 h-8 text-white ${session.user?.image ? 'hidden' : ''}`} />
+                      <WalletAvatar 
+                        address={session.user?.address || null}
+                        size={32}
+                        className="border border-white"
+                      />
                       <span className="text-sm text-white font-mono">
                         {formatWalletAddress(session.user?.address || "")}
                       </span>

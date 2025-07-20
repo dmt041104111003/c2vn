@@ -8,7 +8,7 @@ export interface CardanoWalletUser {
 }
 
 export interface CardanoWalletConfig {
-  network: 'mainnet' | 'testnet';
+  network: 'mainnet';
 }
 
 export class CardanoWalletProvider {
