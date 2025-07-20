@@ -26,7 +26,7 @@ export default function Header() {
     </header>
   );
 }
-
 function IconButton({ icon }: { icon: React.ReactNode }) {
   return <button className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200 transition">{icon}</button>;
 }
+

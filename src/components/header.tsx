@@ -9,9 +9,11 @@ import { motion } from "framer-motion";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { User as UserIcon, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useUser } from "~/hooks/useUser";
 
 export default function Header() {
   const { data: session } = useSession();
+  const { isAdmin } = useUser();
   const [missingCount, setMissingCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -101,6 +103,14 @@ export default function Header() {
                 ></path>
               </svg>
             </Link>
+            {session && isAdmin && (
+              <Link
+                href="/admin"
+                className="inline-flex items-center gap-2 rounded-sm border border-white/30 bg-gray-800/50 px-4 py-2 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:border-white/50 hover:bg-gray-700/50"
+              >
+                <span>Admin Panel</span>
+              </Link>
+            )}
             {/* Desktop Auth Buttons */}
             <div className="flex items-center gap-3">
               {session ? (
@@ -218,6 +228,19 @@ export default function Header() {
                   </svg>
                 </Link>
               </div>
+
+              {/* Admin Panel Link - Only show when logged in and is admin */}
+              {session && isAdmin && (
+                <div className="pt-2 border-t border-white/10">
+                  <Link
+                    href="/admin"
+                    onClick={closeMenu}
+                    className="inline-flex items-center gap-2 rounded-sm border border-white/30 bg-gray-800/50 px-4 py-2 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:border-white/50 hover:bg-gray-700/50"
+                  >
+                    <span>Admin Panel</span>
+                  </Link>
+                </div>
+              )}
 
               {/* Mobile Auth Section */}
               <div className="pt-2 border-t border-white/10">
