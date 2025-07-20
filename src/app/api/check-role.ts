@@ -1,43 +1,31 @@
 import { getServerSession } from "next-auth";
 import { prisma } from "~/lib/prisma";
 
-
-export async function getCurrentUserRoles(): Promise<string[]> {
+export async function getCurrentUserRole(): Promise<string | null> {
     const session = await getServerSession();
 
-    if (!session?.user?.email) return [];
+    if (!session?.user?.address) return null;
 
     const user = await prisma.user.findUnique({
-        where: { email: session.user.email },
-        include: { roles: true },
+        where: { wallet: session.user.address },
+        include: { role: true },
     });
 
-    return user?.roles.map((role) => role.name) || [];
+    return user?.role.name || null;
 }
-
 
 export async function hasRole(roles: string[] | string): Promise<boolean> {
-    const currentRoles = await getCurrentUserRoles();
+    const currentRole = await getCurrentUserRole();
+    if (!currentRole) return false;
+    
     const requiredRoles = Array.isArray(roles) ? roles : [roles];
-    return currentRoles.some((role) => requiredRoles.includes(role));
+    return requiredRoles.includes(currentRole);
 }
-
 
 export async function isAdmin() {
     return hasRole("ADMIN");
 }
 
-export async function isEditor() {
-    return hasRole("EDITOR");
-}
-
-export async function isAuthor() {
-    return hasRole("AUTHOR");
-}
-
 export async function isUser() {
     return hasRole("USER");
-}
-export async function isGuest() {
-    return hasRole("GUEST");
 }

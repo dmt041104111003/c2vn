@@ -12,8 +12,8 @@ export type Product = {
 export type User = {
   id: string;
   name: string;
-  email: string;
-  roles: string[];
+  wallet: string;
+  role: string;
   status: "Active" | "Inactive" | "Pending" | "Banned";
   createdAt: string;
 };
@@ -21,6 +21,5 @@ export type User = {
 export type Role = {
   id: string;
   name: string;
- description: string;
- isDefault: boolean;
+  description: string;
 };

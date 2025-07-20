@@ -1,43 +1,43 @@
 "use client";
 
-import * as React from "react";
+import React from "react";
 import {
   ColumnDef,
+  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  flexRender,
 } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubContent,
-  DropdownMenuPortal,
   DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-
-import { Role, User } from "~/components/admin/type/type";
+import { User, Role } from "../type/type";
 
 const getRoleColor = (role: string) => {
-  switch (role) {
+  switch (role.toUpperCase()) {
     case "ADMIN":
       return "bg-red-100 text-red-800";
-    case "AUTHOR":
-      return "bg-green-100 text-green-800";
-    case "EDITOR":
-      return "bg-yellow-100 text-yellow-800";
     case "USER":
       return "bg-blue-100 text-blue-800";
     default:
@@ -46,63 +46,6 @@ const getRoleColor = (role: string) => {
 };
 
 export function UserTable({ users, loading, refreshData }: { users: User[]; loading: boolean; refreshData: () => Promise<void> }) {
-  const [availableRoles, setAvailableRoles] = React.useState<Role[]>([]);
-
-  React.useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const res = await fetch("/api/role");
-        if (!res.ok) throw new Error("Failed to fetch roles");
-        const data = await res.json();
-        setAvailableRoles(data.data || []);
-      } catch (err) {
-        console.error("Lỗi khi fetch roles:", err);
-      }
-    };
-    fetchRoles();
-  }, []);
-
-  const handleGrantRole = async (userId: string, role: Role, userName: string) => {
-    try {
-      const res = await fetch(`/api/user/${userId}/grant`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ roleIds: [role.id] }),
-      });
-
-      if (!res.ok) throw new Error("Không thể gán quyền");
-
-      alert(`Gán quyền ${role.name} cho ${userName} thành công`);
-
-      await refreshData();
-    } catch (err) {
-      alert("Lỗi khi gán quyền");
-      console.error(err);
-    }
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      const res = await fetch(`/api/user/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!res.ok) throw new Error("Không thể xóa người dùng");
-
-      alert(`Đã xóa người dùng`);
-
-      await refreshData();
-    } catch (err) {
-      alert("Lỗi khi xóa");
-      console.error(err);
-    }
-  };
-
   const columns: ColumnDef<User>[] = [
     {
       accessorKey: "name",
@@ -114,22 +57,20 @@ export function UserTable({ users, loading, refreshData }: { users: User[]; load
       cell: ({ row }) => <div>{row.getValue("name")}</div>,
     },
     {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ row }) => <div>{row.getValue("email")}</div>,
+      accessorKey: "wallet",
+      header: "Wallet",
+      cell: ({ row }) => <div className="font-mono text-sm">{row.getValue("wallet")}</div>,
     },
     {
-      accessorKey: "roles",
+      accessorKey: "role",
       header: "Vai trò",
       cell: ({ row }) => {
-        const roles: string[] = row.getValue("roles");
+        const role: string = row.getValue("role");
         return (
           <div className="flex flex-wrap gap-1">
-            {roles.map((role, idx) => (
-              <span key={idx} className={`text-xs font-semibold px-2 py-[2px] rounded-full ${getRoleColor(role)}`}>
-                {role}
-              </span>
-            ))}
+            <span className={`text-xs font-semibold px-2 py-[2px] rounded-full ${getRoleColor(role)}`}>
+              {role}
+            </span>
           </div>
         );
       },
@@ -163,26 +104,6 @@ export function UserTable({ users, loading, refreshData }: { users: User[]; load
               <DropdownMenuLabel>Hành động</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Xem chi tiết</DropdownMenuItem>
-
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>Cấp quyền</DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    {availableRoles.length > 0 ? (
-                      availableRoles.map((role) => (
-                        <DropdownMenuItem key={role.id} onClick={() => handleGrantRole(user.id, role, user.name)}>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{role.name}</span>
-                            <span className="text-xs text-muted-foreground">{role.description}</span>
-                          </div>
-                        </DropdownMenuItem>
-                      ))
-                    ) : (
-                      <DropdownMenuItem disabled>Không có dữ liệu</DropdownMenuItem>
-                    )}
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
               <DropdownMenuItem onClick={() => handleDeleteUser(user.id)}>Xóa</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -190,6 +111,26 @@ export function UserTable({ users, loading, refreshData }: { users: User[]; load
       },
     },
   ];
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/user/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) throw new Error("Không thể xóa người dùng");
+
+      alert(`Đã xóa người dùng`);
+
+      await refreshData();
+    } catch (err) {
+      alert("Lỗi khi xóa");
+      console.error(err);
+    }
+  };
 
   const table = useReactTable({
     data: users,

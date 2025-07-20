@@ -1,106 +1,86 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "~/lib/prisma";
-import { isAdmin, isAuthor, isEditor, isUser, isGuest } from "../check-role";
 import { getServerSession } from "next-auth";
+import { prisma } from "~/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
-    // const isAllowed = await isAdmin();
-    // if (!isAllowed) {
-    //   return NextResponse.json({ error: "You dont have permission" }, { status: 401 });
-    // }
-    const users = await prisma.user.findMany({
-      include: {
-        roles: true,
-      },
+    const session = await getServerSession();
+    const address = session?.user?.address;
+
+    if (!address) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { wallet: address },
+      include: { role: true },
     });
 
-    const formatted = users.map((user) => ({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      image: user.image,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      roles: user.roles.map((role) => ({
-        id: role.id,
-        name: role.name,
-        description: role.description,
-        is_default: role.is_default,
-      })),
-    }));
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
-      message: "Users with roles fetched successfully",
-      data: formatted,
+      user: {
+        id: user.id,
+        name: user.name,
+        image: user.image,
+        address: user.wallet,
+        role: user.role.name,
+        isAdmin: user.role.name === "ADMIN",
+      }
     });
-  } catch (err) {
-    console.error("Error fetching users with roles:", err);
-    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession();
+    const address = session?.user?.address;
 
-    if (!session?.user?.email) {
+    if (!address) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const { name, dob, phone, hometown } = body;
+    const { name, image, dob, phone, hometown } = body;
 
-    let user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      include: { roles: true },
+    const user = await prisma.user.findUnique({
+      where: { wallet: address },
     });
-    if (user && user.roles.length > 0) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
-    } else {
-      await prisma.user.create({
-        data: {
-          email: session.user.email,
-          name: session.user.name || null,
-          image: session.user.image || null,
-        },
-      });
-
-      user = await prisma.user.findUnique({
-        where: { email: session.user.email },
-        include: { roles: true },
-      });
-    }
 
     if (!user) {
-      return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.roles.length === 0) {
-      const userRole = await prisma.role.findFirst({ where: { name: "USER" } });
-
-      if (userRole) {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            roles: {
-              connect: { id: userRole.id },
-            },
-          },
-        });
-      }
-    }
-
-    const profile = await prisma.profile.upsert({
-      where: { userId: user.id },
-      update: { name, dob, phone, hometown },
-      create: { userId: user.id, name, dob, phone, hometown },
+    const updatedUser = await prisma.user.update({
+      where: { wallet: address },
+      data: {
+        name,
+        image,
+        dob,
+        phone,
+        hometown,
+      },
+      include: { role: true },
     });
 
-    return NextResponse.json({ profile });
+    return NextResponse.json({
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        image: updatedUser.image,
+        address: updatedUser.wallet,
+        role: updatedUser.role.name,
+        isAdmin: updatedUser.role.name === "ADMIN",
+      }
+    });
   } catch (error) {
-    console.error("Error saving profile:", error);
+    console.error("Error updating user:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

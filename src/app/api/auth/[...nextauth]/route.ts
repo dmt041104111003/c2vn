@@ -1,64 +1,99 @@
 import NextAuth from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
 import { prisma } from "~/lib/prisma"
+import { CardanoWalletProvider } from "~/lib/cardano-auth-provider"
 
 const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_ID!,
-      clientSecret: process.env.GOOGLE_SECRET!,
-    }),
+    CardanoWalletProvider(),
   ],
   pages: {
     signIn: "/",
     signOut: "/",
   },
   callbacks: {
-    async redirect({ url, baseUrl }) {
+    async redirect({ baseUrl }) {
       return baseUrl
     },
-    async signIn({ user, account, profile }) {
-      if (account?.provider === "google") {
+    async jwt({ token, user, account }) {
+      if (user && account?.provider === "cardano-wallet") {
+        token.address = user.address;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token.address) {
+        session.user.address = token.address;
+      }
+      return session;
+    },
+    async signIn({ user, account }) {
+      if (account?.provider === "cardano-wallet") {
         try {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-            include: { roles: true }
+          let dbUser = await prisma.user.findUnique({
+            where: { wallet: user.address },
+            include: { role: true }
           });
 
-          if (!existingUser) {
-            const newUser = await prisma.user.create({
-              data: {
-                email: user.email!,
-                name: user.name || null,
-                image: user.image || null,
-              },
-              include: { roles: true }
-            });
+          if (!dbUser) {
             const userRole = await prisma.role.findFirst({ 
               where: { name: "USER" } 
             });
-
-            if (userRole) {
-              await prisma.user.update({
-                where: { id: newUser.id },
-                data: {
-                  roles: {
-                    connect: { id: userRole.id }
-                  }
-                }
-              });
+            
+            if (!userRole) {
+              throw new Error("Role USER không tồn tại");
             }
 
-            console.log("New user created:", newUser.email);
+            dbUser = await prisma.user.create({
+              data: {
+                wallet: user.address,
+                name: user.name || null,
+                image: user.image || null,
+                roleId: userRole.id,
+              },
+              include: { role: true }
+            });
+            
+            console.log("[NextAuth] New Cardano Wallet user created:", dbUser.wallet);
           } else {
-            console.log("Existing user signed in:", existingUser.email);
+            console.log("[NextAuth] Existing Cardano Wallet user signed in:", dbUser.wallet);
           }
+
+          await prisma.session.create({
+            data: {
+              userId: dbUser.id,
+              accessTime: new Date(),
+              lastAccess: new Date(),
+            }
+          });
+
+          console.log("[NextAuth] Session saved to database for user:", dbUser.wallet);
+          
+          return { id: dbUser.id };
         } catch (error) {
-          console.error("Error in signIn callback:", error);
+          console.error("[NextAuth] Error in Cardano Wallet signIn callback:", error);
+          throw new Error("Lỗi xác thực ví Cardano, vui lòng thử lại.");
         }
       }
-      return true;
+      return false;
+    },
+    async signOut({ token }) {
+      try {
+        if (token?.address) {
+          const user = await prisma.user.findUnique({
+            where: { wallet: token.address as string }
+          });
+          
+          if (user) {
+            await prisma.session.deleteMany({
+              where: { userId: user.id }
+            });
+            console.log("[NextAuth] Sessions deleted from database for user:", user.wallet);
+          }
+        }
+      } catch (error) {
+        console.error("[NextAuth] Error in signOut callback:", error);
+      }
     },
   },
 })

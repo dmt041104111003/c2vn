@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "~/lib/prisma";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession();
-    const { searchParams } = new URL(request.url);
-    const address = searchParams.get("address") || session?.user?.address;
+    const address = session?.user?.address;
 
     if (!address) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,32 +13,34 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { wallet: address },
-      include: { role: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    await prisma.session.updateMany({
-      where: { userId: user.id },
-      data: { lastAccess: new Date() }
+    const updatedSession = await prisma.session.upsert({
+      where: {
+        userId: user.id,
+      },
+      update: {
+        lastAccess: new Date(),
+      },
+      create: {
+        userId: user.id,
+        accessTime: new Date(),
+        lastAccess: new Date(),
+      },
     });
 
-    const isAdmin = user.role.name === "ADMIN";
+    console.log(`[Session] Updated lastAccess for user ${user.wallet}:`, updatedSession.lastAccess);
 
     return NextResponse.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        image: user.image,
-        address: user.wallet,
-        role: user.role.name,
-        isAdmin: isAdmin,
-      }
+      success: true,
+      lastAccess: updatedSession.lastAccess,
     });
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error updating session:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 } 

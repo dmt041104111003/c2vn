@@ -5,8 +5,7 @@ import { prisma } from "~/lib/prisma";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession();
-    const { searchParams } = new URL(request.url);
-    const address = searchParams.get("address") || session?.user?.address;
+    const address = session?.user?.address;
 
     if (!address) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,32 +13,30 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { wallet: address },
-      include: { role: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    await prisma.session.updateMany({
+    const userSession = await prisma.session.findFirst({
       where: { userId: user.id },
-      data: { lastAccess: new Date() }
+      orderBy: { lastAccess: "desc" },
     });
 
-    const isAdmin = user.role.name === "ADMIN";
+    if (!userSession) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        image: user.image,
-        address: user.wallet,
-        role: user.role.name,
-        isAdmin: isAdmin,
+      session: {
+        id: userSession.id,
+        accessTime: userSession.accessTime,
+        lastAccess: userSession.lastAccess,
       }
     });
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching session info:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 } 

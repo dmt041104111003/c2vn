@@ -5,12 +5,11 @@ import { useEffect, useState } from "react";
 
 interface User {
   id: string;
-  email: string;
   name: string | null;
   image: string | null;
-  roles: string[];
+  role: string;
   isAdmin: boolean;
-  profile?: any;
+  address: string;
 }
 
 export function useUser() {
@@ -22,17 +21,30 @@ export function useUser() {
     const fetchUser = async () => {
       if (status === "loading") return;
       
-      if (!session?.user?.email) {
+      const address = session?.user?.address;
+      if (!address) {
         setUser(null);
         setLoading(false);
         return;
       }
 
       try {
-        const response = await fetch("/api/auth/me");
+        const url = `/api/auth/me?address=${encodeURIComponent(address)}`;
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
+          
+          try {
+            await fetch("/api/auth/session/update", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+          } catch (sessionError) {
+            console.error("Error updating session:", sessionError);
+          }
         } else {
           setUser(null);
         }

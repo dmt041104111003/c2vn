@@ -7,188 +7,148 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum LoginMethod {
-  google
-  wallet
-  email
-}
-
+// Enum cho trạng thái bài viết
 enum PostStatus {
-  draft
-  published
-  scheduled
+  DRAFT
+  PUBLISHED
 }
 
-enum AdvertisementType {
-  banner
-  slide
-  popup
+// Enum cho vai trò người dùng
+enum RoleName {
+  ADMIN
+  USER
 }
 
-model Advertisement {
-  id            String            @id @default(uuid())
-  title         String
-  description   String?
-  image_url     String
-  redirect_url  String?
-  type          AdvertisementType
-  is_active     Boolean           @default(true)
-  display_order Int               @default(0)
-  start_date    DateTime?
-  end_date      DateTime?
-  created_at    DateTime          @default(now())
+// Enum cho loại phản hồi
+enum ReactionType {
+  LIKE
+  HEART
+  HAHA
+  SAD
+  ANGRY
+  SHARE
 }
 
-model Role {
-  id          String  @id @default(uuid())
-  name        String  @unique
-  description String?
-  is_default  Boolean @default(false)
-
-  users       User[]           @relation("UserRoles")
-  permissions RolePermission[]
+// Enum cho loại media
+enum MediaType {
+  IMAGE
+  VIDEO
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String    @id @default(cuid())
+  wallet    String    @unique
   name      String?
   image     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  profile Profile?
+  roleId    String
+  role      Role      @relation(fields: [roleId], references: [id])
 
-  roles    Role[]    @relation("UserRoles")
-  posts    Post[]    @relation("UserPosts")
-  comments Comment[] @relation("UserComments")
-  likes    Like[]    @relation("UserLikes")
-  media   Media[]  @relation("UserMedia")
-
-  @@map("users")
+  posts     Post[]    @relation("UserPosts")
+  comments  Comment[] @relation("UserComments")
+  reactions Reaction[]
+  sessions  Session[]
+  media     Media[]   @relation("UserMedia")
 }
 
-model Profile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  name      String?
-  dob       String?
-  phone     String?
-  hometown  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("profiles")
-}
-
-model Category {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
+model Role {
+  id          String    @id @default(uuid())
+  name        RoleName  @unique
   description String?
-  created_at  DateTime @default(now())
 
-  posts Post[]
-}
-
-model Tag {
-  id         String   @id @default(uuid())
-  name       String
-  slug       String   @unique
-  created_at DateTime @default(now())
-
-  posts PostTag[]
-}
-
-model Permission {
-  id          String           @id @default(uuid())
-  action      String           @unique
-  description String?
-  roles       RolePermission[]
+  users       User[]
 }
 
 model Post {
-  id            String     @id @default(uuid())
+  id            String      @id @default(uuid())
   title         String
-  slug          String     @unique
-  content       String
-  summary       String?
-  thumbnail_url String?
-  video_url     String?
-  status        PostStatus @default(draft)
-  view_count    Int        @default(0)
-  author_id     String?
-  author        User?      @relation("UserPosts", fields: [author_id], references: [id])
-  category_id   String?
-  category      Category?  @relation(fields: [category_id], references: [id])
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @default(now())
-  published_at  DateTime?
-  scheduled_at  DateTime?
+  content       String      @db.Text 
+  excerpt       String?     @db.Text 
+  status        PostStatus  @default(DRAFT)
+  viewCount     Int         @default(0)
+  authorId      String 
+  author        User        @relation("UserPosts", fields: [authorId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  publishedAt   DateTime?
 
-  tags     PostTag[]
-  comments Comment[]
-  likes    Like[]
-}
-
-model PostTag {
-  post_id String
-  tag_id  String
-
-  post Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  tag  Tag  @relation(fields: [tag_id], references: [id], onDelete: Cascade)
-
-  @@id([post_id, tag_id])
+  tags          PostTag[]
+  comments      Comment[]
+  reactions     Reaction[]
+  media         Media[]     @relation("PostMedia")
 }
 
 model Comment {
-  id                String  @id @default(uuid())
-  post_id           String
-  user_id           String?
-  content           String
-  parent_comment_id String?
+  id                String      @id @default(uuid())
+  postId            String
+  userId            String?
+  content           String      @db.Text
+  parentCommentId   String?
 
-  post    Post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  user    User?     @relation("UserComments", fields: [user_id], references: [id])
-  parent  Comment?  @relation("CommentToReplies", fields: [parent_comment_id], references: [id])
-  replies Comment[] @relation("CommentToReplies")
+  post              Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user              User?       @relation("UserComments", fields: [userId], references: [id])
+  parent            Comment?    @relation("CommentToReplies", fields: [parentCommentId], references: [id])
+  replies           Comment[]   @relation("CommentToReplies")
 
-  is_approved Boolean  @default(false)
-  created_at  DateTime @default(now())
+  isApproved        Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  reactions         Reaction[]
 }
 
-model Like {
-  user_id String
-  post_id String
+model Reaction {
+  id          String       @id @default(uuid())
+  userId      String
+  postId      String?
+  commentId   String?
+  type        ReactionType
 
-  user User @relation("UserLikes", fields: [user_id], references: [id], onDelete: Cascade)
-  post Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post        Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment?     @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
-  created_at DateTime @default(now())
+  createdAt   DateTime     @default(now())
 
-  @@id([user_id, post_id])
-}
-
-model RolePermission {
-  role_id       String
-  permission_id String
-
-  role       Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
-
-  @@id([role_id, permission_id])
+  @@unique([userId, postId, type])
+  @@unique([userId, commentId, type])
 }
 
 model Media {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   url         String
-  type        String
+  type        MediaType 
   name        String?
-  size        Int?
-  uploaded_by String?
-  uploadedAt  DateTime @default(now())
+  uploadedBy  String?   
+  uploadedAt  DateTime  @default(now())
+  postId      String?   
+  post        Post?     @relation("PostMedia", fields: [postId], references: [id], onDelete: SetNull)
+  user        User?     @relation("UserMedia", fields: [uploadedBy], references: [id], onDelete: SetNull)
+}
 
-  user User? @relation("UserMedia", fields: [uploaded_by], references: [id], onDelete: SetNull)
+model Tag {
+  id         String    @id @default(uuid())
+  name       String
+  slug       String    @unique
+  createdAt  DateTime  @default(now())
+  posts      PostTag[]
+}
+
+model PostTag {
+  postId String
+  tagId  String
+
+  post   Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  accessTime   DateTime?
+  lastAccess   DateTime?
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
