@@ -1,5 +1,6 @@
-import { Edit, Trash2, Shield, User as UserIcon } from 'lucide-react';
+import { Edit, Trash2, Shield, User as UserIcon, Copy as CopyIcon } from 'lucide-react';
 import { User } from '~/constants/users';
+import { WalletAvatar } from '~/components/WalletAvatar';
 
 interface UserTableProps {
   users: User[];
@@ -7,6 +8,19 @@ interface UserTableProps {
   onDelete: (userId: string) => void;
   onRoleChange: (userId: string, role: 'USER' | 'ADMIN') => void;
   onStatusChange: (userId: string, status: 'active' | 'inactive') => void;
+  currentUserAddress?: string | null;
+}
+
+function shortenAddress(address: string, chars = 6) {
+  if (!address) return '';
+  if (address.length <= chars * 2 + 3) return address;
+  return address.slice(0, chars) + '...' + address.slice(-chars);
+}
+
+function formatDateTime(dateString: string) {
+  const date = new Date(dateString);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
 export function UserTable({
@@ -15,6 +29,7 @@ export function UserTable({
   onDelete,
   onRoleChange,
   onStatusChange,
+  currentUserAddress,
 }: UserTableProps) {
   return (
     <div className="overflow-hidden">
@@ -25,13 +40,13 @@ export function UserTable({
               User
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Email
+              Address
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Role
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
+              First Login
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Last Login
@@ -47,11 +62,15 @@ export function UserTable({
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
-                    <img
-                      className="h-10 w-10 rounded-full"
-                      src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
-                      alt={user.name}
-                    />
+                    {user.avatar ? (
+                      <img
+                        className="h-10 w-10 rounded-full"
+                        src={user.avatar}
+                        alt={user.name}
+                      />
+                    ) : (
+                      <WalletAvatar address={user.address} size={40} />
+                    )}
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
@@ -60,7 +79,16 @@ export function UserTable({
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{user.email}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-900 font-mono" title={user.address}>{shortenAddress(user.address, 6)}</span>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(user.address)}
+                    className="p-1 hover:bg-gray-100 rounded"
+                    title="Copy address"
+                  >
+                    <CopyIcon className="h-4 w-4 text-gray-400 hover:text-gray-700" />
+                  </button>
+                </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
@@ -74,33 +102,23 @@ export function UserTable({
                     onChange={(e) => onRoleChange(user.id, e.target.value as 'USER' | 'ADMIN')}
                     className="text-sm border-0 bg-transparent focus:ring-0 focus:outline-none"
                     title={`Change role for ${user.name}`}
+                    disabled={Boolean(user.role === 'ADMIN' || (currentUserAddress && user.address === currentUserAddress))}
                   >
                     <option value="USER">User</option>
                     <option value="ADMIN">Admin</option>
                   </select>
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <select
-                  value={user.status}
-                  onChange={(e) => onStatusChange(user.id, e.target.value as 'active' | 'inactive')}
-                  className={`text-sm border-0 bg-transparent focus:ring-0 focus:outline-none ${
-                    user.status === 'active' ? 'text-green-600' : 'text-red-600'
-                  }`}
-                  title={`Change status for ${user.name}`}
-                >
-                  <option value="active" className="text-green-600">Active</option>
-                  <option value="inactive" className="text-red-600">Inactive</option>
-                </select>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {user.createdAt ? (
+                  <div>{formatDateTime(user.createdAt)}</div>
+                ) : (
+                  <span className="text-gray-400">N/A</span>
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {user.lastLogin ? (
-                  <div>
-                    <div>{new Date(user.lastLogin).toLocaleDateString()}</div>
-                    <div className="text-xs text-gray-400">
-                      {new Date(user.lastLogin).toLocaleTimeString()}
-                    </div>
-                  </div>
+                  <div>{formatDateTime(user.lastLogin)}</div>
                 ) : (
                   <span className="text-gray-400">Never</span>
                 )}
@@ -118,6 +136,7 @@ export function UserTable({
                     onClick={() => onDelete(user.id)}
                     className="text-red-600 hover:text-red-900"
                     title={`Delete ${user.name}`}
+                    disabled={user.role === 'ADMIN' || !!(currentUserAddress && user.address === currentUserAddress)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

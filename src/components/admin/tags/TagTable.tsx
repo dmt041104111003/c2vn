@@ -5,7 +5,7 @@ interface TagTableProps {
   tags: Tag[];
   editingTag: Tag | null;
   onEdit: (tag: Tag) => void;
-  onSave: (tagId: string, newName: string, newDescription: string) => void;
+  onSave: (tagId: string, newName: string) => void;
   onDelete: (tagId: string) => void;
   onCancel: () => void;
 }
@@ -26,9 +26,7 @@ export function TagTable({
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Tag Name
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Description
-            </th>
+
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Posts
             </th>
@@ -51,26 +49,13 @@ export function TagTable({
                     placeholder="Enter tag name"
                     title="Edit tag name"
                     className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    onBlur={(e) => onSave(tag.id, e.target.value, editingTag.description)}
+                    onBlur={(e) => onSave(tag.id, e.target.value)}
                   />
                 ) : (
                   <div className="text-sm font-medium text-gray-900">{tag.name}</div>
                 )}
               </td>
-              <td className="px-6 py-4">
-                {editingTag?.id === tag.id ? (
-                  <input
-                    type="text"
-                    defaultValue={tag.description}
-                    placeholder="Enter tag description"
-                    title="Edit tag description"
-                    className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    onBlur={(e) => onSave(tag.id, editingTag.name, e.target.value)}
-                  />
-                ) : (
-                  <div className="text-sm text-gray-500">{tag.description}</div>
-                )}
-              </td>
+
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   {tag.postCount} posts

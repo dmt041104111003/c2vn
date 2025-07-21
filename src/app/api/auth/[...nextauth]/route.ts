@@ -1,8 +1,9 @@
 import NextAuth from "next-auth"
 import { prisma } from "~/lib/prisma"
 import { CardanoWalletProvider } from "~/lib/cardano-auth-provider"
+import { generateWalletAvatar } from '~/lib/wallet-avatar';
 
-const handler = NextAuth({
+export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CardanoWalletProvider(),
@@ -12,22 +13,22 @@ const handler = NextAuth({
     signOut: "/",
   },
   callbacks: {
-    async redirect({ baseUrl }) {
+    async redirect({ baseUrl }: any) {
       return baseUrl
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: any) {
       if (user && account?.provider === "cardano-wallet") {
         token.address = user.address;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (token.address) {
         session.user.address = token.address;
       }
       return session;
     },
-    async signIn({ user, account }) {
+    async signIn({ user, account }: any) {
       if (account?.provider === "cardano-wallet") {
         try {
           let dbUser = await prisma.user.findUnique({
@@ -44,11 +45,16 @@ const handler = NextAuth({
               throw new Error("Role USER không tồn tại");
             }
 
+            let avatar: string | null = user.image || null;
+            if (!avatar && user.address) {
+              avatar = generateWalletAvatar(user.address);
+            }
+
             dbUser = await prisma.user.create({
               data: {
                 wallet: user.address,
                 name: user.name || null,
-                image: user.image || null,
+                image: avatar,
                 roleId: userRole.id,
               },
               include: { role: true }
@@ -56,6 +62,15 @@ const handler = NextAuth({
             
             console.log("[NextAuth] New Cardano Wallet user created:", dbUser.wallet);
           } else {
+            if (dbUser && !dbUser.image && dbUser.wallet) {
+              const avatar = generateWalletAvatar(dbUser.wallet);
+              if (avatar) {
+                await prisma.user.update({
+                  where: { id: dbUser.id },
+                  data: { image: avatar },
+                });
+              }
+            }
             console.log("[NextAuth] Existing Cardano Wallet user signed in:", dbUser.wallet);
           }
 
@@ -81,14 +96,14 @@ const handler = NextAuth({
           }
           
           return true;
-        } catch (error) {
-          console.error("[NextAuth] Error in Cardano Wallet signIn callback:", error);
-          throw new Error("Lỗi xác thực ví Cardano, vui lòng thử lại.");
+        } catch (e) {
+          console.error(e);
+          return false;
         }
       }
-      return false;
+      return true;
     },
-    async signOut({ token }) {
+    async signOut({ token }: any) {
       try {
         if (token?.address) {
           const user = await prisma.user.findUnique({
@@ -107,6 +122,8 @@ const handler = NextAuth({
       }
     },
   },
-})
+}
 
-export { handler as GET, handler as POST } 
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST }; 

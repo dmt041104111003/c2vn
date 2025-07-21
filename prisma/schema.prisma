@@ -11,6 +11,7 @@ datasource db {
 enum PostStatus {
   DRAFT
   PUBLISHED
+  ARCHIVED
 }
 
 // Enum cho vai trò người dùng
@@ -32,7 +33,7 @@ enum ReactionType {
 // Enum cho loại media
 enum MediaType {
   IMAGE
-  VIDEO
+  YOUTUBE
 }
 
 model User {
@@ -67,15 +68,17 @@ model Post {
   content       String      @db.Text 
   excerpt       String?     @db.Text 
   status        PostStatus  @default(DRAFT)
-  viewCount     Int         @default(0)
+  views         Int         @default(0)
+  likes         Int         @default(0)
+  comments      Int         @default(0)
+  shares        Int         @default(0)
   authorId      String 
   author        User        @relation("UserPosts", fields: [authorId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  publishedAt   DateTime?
 
   tags          PostTag[]
-  comments      Comment[]
+  comments_rel  Comment[]   @relation("PostComments")
   reactions     Reaction[]
   media         Media[]     @relation("PostMedia")
 }
@@ -87,7 +90,7 @@ model Comment {
   content           String      @db.Text
   parentCommentId   String?
 
-  post              Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post              Post        @relation("PostComments", fields: [postId], references: [id], onDelete: Cascade)
   user              User?       @relation("UserComments", fields: [userId], references: [id])
   parent            Comment?    @relation("CommentToReplies", fields: [parentCommentId], references: [id])
   replies           Comment[]   @relation("CommentToReplies")
@@ -118,7 +121,6 @@ model Media {
   id          String    @id @default(uuid())
   url         String
   type        MediaType 
-  name        String?
   uploadedBy  String?   
   uploadedAt  DateTime  @default(now())
   postId      String?   
@@ -129,7 +131,6 @@ model Media {
 model Tag {
   id         String    @id @default(uuid())
   name       String
-  slug       String    @unique
   createdAt  DateTime  @default(now())
   posts      PostTag[]
 }

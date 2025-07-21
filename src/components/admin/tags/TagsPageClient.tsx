@@ -30,13 +30,23 @@ export function TagsPageClient() {
     setEditingTag(tag);
   };
 
-  const handleSave = (tagId: string, newName: string, newDescription: string) => {
+  const handleSave = (tagId: string, newName: string) => {
     setTags(tags.map(tag => 
       tag.id === tagId 
-        ? { ...tag, name: newName, description: newDescription }
+        ? { ...tag, name: newName }
         : tag
     ));
     setEditingTag(null);
+  };
+
+  const handleCreateTag = (newName: string) => {
+    const newTag = {
+      id: `tag-${Date.now()}`,
+      name: newName,
+      createdAt: new Date().toISOString(),
+      postCount: 0,
+    };
+    setTags([newTag, ...tags]);
   };
 
   const handleDelete = (tagId: string) => {
@@ -80,6 +90,12 @@ export function TagsPageClient() {
         title="Tags Management"
         description="Manage blog tags and categories"
         buttonText="Add New Tag"
+        onAddClick={() => {
+          const tagName = prompt('Enter tag name:');
+          if (tagName && tagName.trim()) {
+            handleCreateTag(tagName.trim());
+          }
+        }}
       />
 
       <AdminStats stats={stats} />
