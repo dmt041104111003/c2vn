@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 
 interface CommentInputProps {
-  onSubmit: (comment: string, user?: any) => void;
+  onSubmit: (comment: string, user?: { id: string; address: string; image: string | null } | null) => void;
   placeholder?: string;
   user?: { id: string; address: string; image: string | null } | null;
 }
