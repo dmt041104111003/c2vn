@@ -141,36 +141,7 @@ export function PostEditorClient({ onSave, post }: PostEditorClientProps) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    try {
-      let res;
-      if (post && post.id) {
-        // PATCH update
-        res = await fetch(`/api/admin/posts/${post.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(postData),
-        });
-      } else {
-        // POST create
-        res = await fetch('/api/admin/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(postData),
-        });
-      }
-      if (res.ok) {
-        const data = await res.json();
-        showSuccess(post && post.id ? 'Post updated successfully!' : 'Post created successfully!');
-        if (onSave) onSave(data.post);
-      } else {
-        const err = await res.json();
-        showError('Error', err.error || 'Failed to save post');
-      }
-    } catch (e) {
-      showError('Error', 'Failed to save post');
-    }
+    if (onSave) onSave(postData);
   };
 
  

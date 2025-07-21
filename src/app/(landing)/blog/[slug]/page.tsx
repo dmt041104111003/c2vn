@@ -10,9 +10,26 @@ import ShareModal from "~/components/blog/ShareModal";
 import CommentSection from "~/components/blog/CommentSection";
 import ReactionCount from "~/components/blog/ReactionCount";
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  author: string;
+  tags: { id: string; name: string }[];
+  media: { type: string; url: string; id?: string }[];
+  comments: { id: string; text: string; author: string; createdAt: string }[];
+  shares: number;
+}
+
+interface Tag {
+  id: string;
+  name: string;
+}
+
 export default function BlogDetailPage() {
   const params = useParams();
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<Post | null>(null);
   const [showReactions, setShowReactions] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
@@ -61,8 +78,8 @@ export default function BlogDetailPage() {
             </h1>
             {Array.isArray(post.tags) && post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
-                {post.tags.map((tag: any) => (
-                  <span key={tag.id || tag} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {post.tags.map((tag: Tag) => (
+                  <span key={typeof tag === 'string' ? tag : tag.id} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {tag.name || tag}
                   </span>
                 ))}
