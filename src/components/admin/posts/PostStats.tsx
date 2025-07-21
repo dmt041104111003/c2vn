@@ -2,9 +2,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useState } from 'react';
 
 import { Pagination } from '~/components/ui/pagination';
+import { Post } from '~/constants/posts';
 
 interface PostStatsProps {
-  posts: any[];
+  posts: Post[];
   year?: number;
 }
 
@@ -20,7 +21,7 @@ export function PostStats({ posts, year: yearProp }: PostStatsProps) {
   const months = Array.from({ length: 12 }, (_, i) => i);
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  const postsByMonth: Record<number, any[]> = {};
+  const postsByMonth: Record<number, Post[]> = {};
   months.forEach(m => { postsByMonth[m] = []; });
   posts.forEach(p => {
     const d = new Date(p.createdAt);
@@ -133,7 +134,7 @@ export function PostStats({ posts, year: yearProp }: PostStatsProps) {
   );
 }
 
-function PostMonthDetailTable({ posts, monthName, year }: { posts: any[], monthName: string, year: number }) {
+function PostMonthDetailTable({ posts, monthName, year }: { posts: Post[], monthName: string, year: number }) {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const totalPages = Math.ceil(posts.length / pageSize);

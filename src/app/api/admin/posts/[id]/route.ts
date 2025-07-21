@@ -3,6 +3,12 @@ import { prisma } from '~/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '~/app/api/auth/[...nextauth]/route';
 
+function getYoutubeIdFromUrl(url: string) {
+  if (!url) return '';
+  const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/#\s]{11})/);
+  return match ? match[1] : '';
+}
+
 export async function GET(request: NextRequest, context: any) {
   const params = await context.params;
   try {
@@ -23,7 +29,12 @@ export async function GET(request: NextRequest, context: any) {
     });
     if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     const tags = post.tags?.map((t: any) => t.tag) || [];
-    const media = Array.isArray(post.media) ? post.media : [];
+    let media = Array.isArray(post.media) ? post.media : [];
+    media = media.map((m: any) =>
+      m.type === 'YOUTUBE'
+        ? { ...m, id: m.id && m.id.length === 11 ? m.id : getYoutubeIdFromUrl(m.url) }
+        : m
+    );
     return NextResponse.json({ post: { ...post, author: post.author?.name || 'Admin', tags, media } });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -100,15 +111,24 @@ export async function PATCH(request: NextRequest, context: any) {
     }
 
     try {
+      await prisma.media.deleteMany({ where: { postId: params.id } });
+      if (Array.isArray(body.media) && body.media.length > 0) {
+        await prisma.media.createMany({
+          data: body.media.map((m: any) => ({
+            id: m.id,
+            url: m.url,
+            type: m.type,
+            postId: params.id,
+          })),
+          skipDuplicates: true,
+        });
+      }
       const updated = await prisma.post.update({
         where: { id: params.id },
         data: {
           title: body.title,
           content: body.content,
           status: body.status,
-          media: {
-            set: body.media.map((m: any) => ({ id: m.id })),
-          },
         },
         include: {
           tags: { include: { tag: true } },

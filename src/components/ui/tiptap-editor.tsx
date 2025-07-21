@@ -49,6 +49,8 @@ import {
 import { useEffect, useState } from 'react';
 import { tiptapStyles } from './tiptap/styles';
 import { FloatingTableToolbar } from './floating-table-toolbar';
+import { Editor } from '@tiptap/core';
+import { Node, Mark } from 'prosemirror-model';
 
 const lowlight = createLowlight(common);
 
@@ -60,7 +62,7 @@ interface TipTapEditorProps {
 
 export { TipTapPreview } from './tiptap-preview';
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const [forceUpdate, setForceUpdate] = useState(0);
 
   useEffect(() => {
@@ -112,8 +114,8 @@ const MenuBar = ({ editor }: { editor: any }) => {
     const { from, to } = selection;
     const doc = editor.state.doc;
     
-    const textNodes: Array<{ node: any; pos: number; marks: any[] }> = [];
-    doc.nodesBetween(from, to, (node: any, pos: number) => {
+    const textNodes: Array<{ node: Node; pos: number; marks: Mark[] }> = [];
+    doc.nodesBetween(from, to, (node: Node, pos: number) => {
       if (node.type.name === 'text') {
         textNodes.push({ node, pos, marks: node.marks });
       }

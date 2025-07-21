@@ -1,5 +1,6 @@
 import { Edit, Trash2, Eye, EyeOff, Archive, MessageSquare, Heart, Share2 } from 'lucide-react';
 import { Post } from '~/constants/posts';
+import { Tag } from '~/constants/tags';
 
 interface PostTableProps {
   posts: Post[];
@@ -82,10 +83,10 @@ export function PostTable({
                 <div className="flex flex-wrap gap-1">
                   {Array.isArray(post.tags) && post.tags.slice(0, 2).map((tag, index) => (
                     <span
-                      key={typeof tag === 'object' && tag !== null && (tag as any).id ? (tag as any).id : index}
+                      key={typeof tag === 'object' && tag !== null && (tag as Tag).id ? (tag as Tag).id : index}
                       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                     >
-                      {typeof tag === 'object' && tag !== null && (tag as any).name ? (tag as any).name : String(tag)}
+                      {typeof tag === 'object' && tag !== null && (tag as Tag).name ? (tag as Tag).name : String(tag)}
                     </span>
                   ))}
                   {Array.isArray(post.tags) && post.tags.length > 2 && (

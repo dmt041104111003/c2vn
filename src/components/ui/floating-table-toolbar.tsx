@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Plus, Minus, Trash2 } from 'lucide-react';
+import { Editor } from '@tiptap/core';
 
 interface FloatingTableToolbarProps {
-  editor: any;
+  editor: Editor | null;
   isClient: boolean;
 }
 

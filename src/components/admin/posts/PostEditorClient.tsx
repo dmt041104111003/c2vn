@@ -14,15 +14,16 @@ interface Tag {
 interface PostEditorClientProps {
   onSave: (post: any) => void;
   post?: any;
+  onCancel?: () => void;
 }
 
-export function PostEditorClient({ onSave, post }: PostEditorClientProps) {
+export function PostEditorClient({ onSave, post, onCancel }: PostEditorClientProps) {
   const [postState, setPostState] = useState({
     title: '',
     selectedTags: [] as string[],
     status: 'DRAFT' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
     content: '',
-    media: [] as Array<{ type: 'image' | 'youtube'; url: string; id: string }>,
+    media: [] as Array<{ type: 'image' | 'youtube' | 'video'; url: string; id: string }>,
   });
 
   const [showTagDropdown, setShowTagDropdown] = useState(false);
@@ -84,10 +85,21 @@ export function PostEditorClient({ onSave, post }: PostEditorClientProps) {
     }));
   };
 
-  const handleMediaAdd = (media: { type: 'image' | 'youtube'; url: string; id: string }) => {
+  function getYoutubeIdFromUrl(url: string): string {
+    if (!url) return '';
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/#\s]{11})/);
+    return match ? match[1] : '';
+  }
+
+  const handleMediaAdd = (media: { type: 'image' | 'youtube' | 'video'; url: string; id: string }) => {
+    let newMedia = media;
+    if (media.type === 'youtube') {
+      const ytId = getYoutubeIdFromUrl(media.url);
+      newMedia = { ...media, id: ytId };
+    }
     setPostState(prev => ({
       ...prev,
-      media: [media]
+      media: [newMedia]
     }));
   };
 
@@ -297,20 +309,28 @@ export function PostEditorClient({ onSave, post }: PostEditorClientProps) {
             </div>
             <div className="flex justify-end gap-2">
               {post && post.id ? (
-                <button
-                  onClick={handleSave}
-                  className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Update Post
-                </button>
+                <>
+                  <button
+                    onClick={onCancel ? onCancel : () => onSave(null)}
+                    className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Update Post
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={handleSave}
                   className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Post
+                  Create Post
                 </button>
               )}
             </div>
@@ -330,30 +350,41 @@ export function PostEditorClient({ onSave, post }: PostEditorClientProps) {
           {Array.isArray(postState.media) && postState.media.length > 0 && (
             <div className="mb-6">
               <div className="space-y-4">
-                {postState.media.map((media, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
-                    {media.type === 'youtube' ? (
-                      <div className="youtube-video">
-                        <iframe
-                          src={`https://www.youtube.com/embed/${media.id}`}
-                          title="YouTube video player"
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          className="w-full h-64"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex justify-center">
-                        <img
-                          src={media.url}
-                          alt={`Media ${index + 1}`}
-                          className="max-w-full max-h-64 rounded-lg shadow-md"
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {postState.media.map((media, index) => {
+                  const type = media.type?.toLowerCase?.() || '';
+                  return (
+                    <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+                      {type === 'youtube' ? (
+                        <div className="youtube-video">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${media.id && media.id.length === 11 ? media.id : getYoutubeIdFromUrl(media.url)}`}
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-64"
+                          />
+                        </div>
+                      ) : type === 'video' ? (
+                        <div className="flex justify-center">
+                          <video
+                            src={media.url}
+                            controls
+                            className="max-w-full max-h-64 rounded-lg shadow-md"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex justify-center">
+                          <img
+                            src={media.url}
+                            alt={`Media ${index + 1}`}
+                            className="max-w-full max-h-64 rounded-lg shadow-md"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

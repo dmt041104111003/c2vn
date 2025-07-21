@@ -52,13 +52,11 @@ export default function Header() {
           </motion.section>
 
           <section className="hidden items-center space-x-8 md:flex">
-            {navbars.map(function (navbar: any) {
-              return (
-                <Link href={navbar.href} key={navbar.id} className="font-medium text-gray-300 transition-colors duration-200 hover:text-white">
-                  {navbar.title}
-                </Link>
-              );
-            })}
+            {navbars.map((navbar: NavbarType) => (
+              <Link href={navbar.href} key={navbar.id} className="font-medium text-gray-300 transition-colors duration-200 hover:text-white">
+                {navbar.title}
+              </Link>
+            ))}
             <Link
               target="_blank"
               href="lms.cardano2vn.io"

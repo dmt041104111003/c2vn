@@ -112,7 +112,7 @@ export function PostsPageClient() {
     setCurrentPage(page);
   };
 
-  const handleSavePost = async (newPost: any) => {
+  const handleSavePost = async (newPost: Post) => {
     try {
       if (editingPost && editingPost.id) {
         const res = await fetch(`/api/admin/posts/${editingPost.id}`, {
