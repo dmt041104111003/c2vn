@@ -1,4 +1,4 @@
-import { Edit, Trash2, Eye, EyeOff, Archive, FileText, MessageSquare, Heart, Share2 } from 'lucide-react';
+import { Edit, Trash2, Eye, EyeOff, Archive, MessageSquare, Heart, Share2 } from 'lucide-react';
 import { Post } from '~/constants/posts';
 
 interface PostTableProps {
@@ -61,12 +61,7 @@ export function PostTable({
             <tr key={post.id} className="hover:bg-gray-50">
               <td className="px-6 py-4">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 h-10 w-10">
-                    <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-white" />
-                    </div>
-                  </div>
-                  <div className="ml-4">
+                  <div>
                     <div className="text-sm font-medium text-gray-900">{post.title}</div>
                     <div className="text-sm text-gray-500">{post.excerpt}</div>
                   </div>

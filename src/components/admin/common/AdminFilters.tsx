@@ -1,15 +1,12 @@
-import { Search, Filter } from 'lucide-react';
+'use client';
 
-interface FilterOption {
-  value: string;
-  label: string;
-}
+import { Search } from 'lucide-react';
 
 interface AdminFiltersProps {
   searchTerm: string;
   filterType: string;
   searchPlaceholder: string;
-  filterOptions: FilterOption[];
+  filterOptions: { value: string; label: string }[];
   onSearchChange: (value: string) => void;
   onFilterChange: (value: string) => void;
 }
@@ -53,7 +50,7 @@ export function AdminFilters({
                   </option>
                 ))}
               </select>
-              <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+
             </div>
           </div>
         </div>
