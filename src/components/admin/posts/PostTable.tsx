@@ -9,7 +9,7 @@ interface PostTableProps {
 }
 
 export function PostTable({
-  posts,
+  posts = [],
   onEdit,
   onDelete,
   onStatusChange,
@@ -29,8 +29,8 @@ export function PostTable({
 
 
   return (
-    <div className="overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="overflow-x-auto">
+      <table className="min-w-[700px] md:min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -43,13 +43,13 @@ export function PostTable({
               Status
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Stats
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Tags
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Created
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Last Update
             </th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
@@ -57,13 +57,12 @@ export function PostTable({
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {posts.map((post) => (
+          {Array.isArray(posts) && posts.map((post) => (
             <tr key={post.id} className="hover:bg-gray-50">
               <td className="px-6 py-4">
                 <div className="flex items-center">
                   <div>
                     <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                    <div className="text-sm text-gray-500">{post.excerpt}</div>
                   </div>
                 </div>
               </td>
@@ -71,48 +70,25 @@ export function PostTable({
                 <div className="text-sm text-gray-900">{post.author}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <select
-                  value={post.status}
-                  onChange={(e) => onStatusChange(post.id, e.target.value as 'draft' | 'published' | 'archived')}
-                  className={`text-sm px-2 py-1 rounded-full border-0 focus:ring-0 focus:outline-none ${getStatusColor(post.status)}`}
-                  title={`Change status for ${post.title}`}
-                >
-                  <option value="draft" className="text-yellow-600">Draft</option>
-                  <option value="published" className="text-green-600">Published</option>
-                  <option value="archived" className="text-gray-600">Archived</option>
-                </select>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center space-x-3 text-xs text-gray-500">
-                  <div className="flex items-center">
-                    <Eye className="h-3 w-3 mr-1" />
-                    {post.views}
-                  </div>
-                  <div className="flex items-center">
-                    <Heart className="h-3 w-3 mr-1" />
-                    {post.likes}
-                  </div>
-                  <div className="flex items-center">
-                    <MessageSquare className="h-3 w-3 mr-1" />
-                    {post.comments}
-                  </div>
-                  <div className="flex items-center">
-                    <Share2 className="h-3 w-3 mr-1" />
-                    {post.shares}
-                  </div>
-                </div>
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold
+                  ${(post.status && String(post.status).toLowerCase() === 'published') ? 'bg-green-100 text-green-700' : ''}
+                  ${(post.status && String(post.status).toLowerCase() === 'draft') ? 'bg-yellow-100 text-yellow-700' : ''}
+                  ${(post.status && String(post.status).toLowerCase() === 'archived') ? 'bg-gray-100 text-gray-700' : ''}
+                `}>
+                  {post.status}
+                </span>
               </td>
               <td className="px-6 py-4">
                 <div className="flex flex-wrap gap-1">
-                  {post.tags.slice(0, 2).map((tag, index) => (
+                  {Array.isArray(post.tags) && post.tags.slice(0, 2).map((tag, index) => (
                     <span
-                      key={index}
+                      key={typeof tag === 'object' && tag !== null && (tag as any).id ? (tag as any).id : index}
                       className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                     >
-                      {tag}
+                      {typeof tag === 'object' && tag !== null && (tag as any).name ? (tag as any).name : String(tag)}
                     </span>
                   ))}
-                  {post.tags.length > 2 && (
+                  {Array.isArray(post.tags) && post.tags.length > 2 && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                       +{post.tags.length - 2}
                     </span>
@@ -120,7 +96,20 @@ export function PostTable({
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(post.createdAt).toLocaleDateString()}
+                {post.createdAt ?
+                  new Date(post.createdAt).toLocaleString('en-GB', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: false
+                  })
+                  : ''}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {post.updatedAt ?
+                  new Date(post.updatedAt).toLocaleString('en-GB', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: false
+                  })
+                  : ''}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex items-center justify-end space-x-2">

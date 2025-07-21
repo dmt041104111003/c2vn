@@ -108,18 +108,17 @@ export default function CardanoWalletButton({
     return `${baseClasses} border-white/30 bg-gray-800/50 text-white hover:border-white/50 hover:bg-gray-700/50`;
   };
 
+
   if (!isWalletInstalled) {
     return (
-      <a
-        href="https://eternl.io"
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        type="button"
+        onClick={() => window.open('https://eternl.io', '_blank', 'noopener,noreferrer')}
         className={`${getButtonClasses()} ${className}`}
-        onClick={handleInstallClick}
       >
         {getButtonIcon()}
         <span>{getButtonText()}</span>
-      </a>
+      </button>
     );
   }
 

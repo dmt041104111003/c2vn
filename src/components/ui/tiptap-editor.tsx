@@ -507,6 +507,12 @@ export function TipTapEditor({ content, onChange, placeholder }: TipTapEditorPro
     },
   });
 
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || '');
+    }
+  }, [content, editor]);
+
   if (!isClient) {
     return (
       <div className="border border-gray-300 rounded-md overflow-hidden bg-white" suppressHydrationWarning>

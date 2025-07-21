@@ -5,12 +5,14 @@ import { Comment } from "../../constants/comments";
 import CommentInput from "./CommentInput";
 import CommentItem from "./CommentItem";
 import { CommentSkeletonList } from "./CommentSkeleton";
+import { useUser } from '~/hooks/useUser';
 
 interface CommentSectionProps {
   comments: Comment[];
 }
 
 export default function CommentSection({ comments }: CommentSectionProps) {
+  const { isAuthenticated, user } = useUser();
   const [visibleComments, setVisibleComments] = useState(3);
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +42,13 @@ export default function CommentSection({ comments }: CommentSectionProps) {
 
   return (
     <div className="mt-8 space-y-4">
-      <CommentInput onSubmit={handleSubmitComment} />
+      {isAuthenticated ? (
+        <CommentInput onSubmit={handleSubmitComment} user={user} />
+      ) : (
+        <div className="bg-gray-800/30 rounded-2xl p-3 border border-gray-700/50 text-center text-gray-400">
+          <span>You need to <b>log in</b> to comment.</span>
+        </div>
+      )}
 
       <div className="space-y-4">
         {visibleCommentsList.map((comment) => (

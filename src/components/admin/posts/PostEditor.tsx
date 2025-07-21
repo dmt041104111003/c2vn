@@ -47,8 +47,9 @@ const PostEditorClient = dynamic(() => import('./PostEditorClient').then(mod => 
 
 interface PostEditorProps {
   onSave: (post: any) => void;
+  post?: any;
 }
 
-export function PostEditor({ onSave }: PostEditorProps) {
-  return <PostEditorClient onSave={onSave} />;
+export function PostEditor({ onSave, post }: PostEditorProps) {
+  return <PostEditorClient onSave={onSave} post={post} />;
 }

@@ -1,58 +1,116 @@
 'use client';
 
-import { useState } from 'react';
-import { Tag, mockTags, ITEMS_PER_PAGE, isWithin24Hours } from '~/constants/tags';
+import { useEffect, useState } from 'react';
+import { Tag, ITEMS_PER_PAGE, isWithin24Hours } from '~/constants/tags';
 import { AdminHeader } from '~/components/admin/common/AdminHeader';
 import { AdminStats } from '~/components/admin/common/AdminStats';
 import { AdminFilters } from '~/components/admin/common/AdminFilters';
 import { TagTable } from '~/components/admin/tags/TagTable';
 import { Pagination } from '~/components/ui/pagination';
+import Modal from '~/components/admin/common/Modal';
+import { useToastContext } from '~/components/toast-provider';
 
 export function TagsPageClient() {
-  const [tags, setTags] = useState<Tag[]>(mockTags);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'newest'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newTagName, setNewTagName] = useState('');
+  const { showSuccess, showError } = useToastContext();
 
-  const filteredTags = tags.filter(tag => {
-    const matchesSearch = tag.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterType === 'all' || 
-      (filterType === 'newest' && isWithin24Hours(tag.createdAt));
-    return matchesSearch && matchesFilter;
-  });
+  useEffect(() => {
+    fetchTags();
+  }, []);
 
-  const totalPages = Math.ceil(filteredTags.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedTags = filteredTags.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const fetchTags = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/tags', { credentials: 'include' });
+      const data = await res.json();
+      if (Array.isArray(data.tags)) {
+        setTags(data.tags.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          createdAt: t.createdAt,
+          postCount: t._count?.posts ?? t.postCount ?? 0,
+        })));
+      }
+    } catch {
+      setTags([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateTag = async (newName: string) => {
+    if (!newName) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: newName })
+      });
+      if (res.ok) {
+        await fetchTags();
+        showSuccess('Tag created', `Tag "${newName}" has been created successfully.`);
+      } else {
+        showError('Failed to create tag');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (tagId: string) => {
+    if (!window.confirm('Are you sure you want to delete this tag?')) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/tags', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id: tagId })
+      });
+      if (res.ok) {
+        await fetchTags();
+        showSuccess('Tag deleted', 'The tag has been deleted.');
+      } else {
+        showError('Failed to delete tag');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (tagId: string, newName: string) => {
+    if (!newName) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/tags', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id: tagId, name: newName })
+      });
+      if (res.ok) {
+        await fetchTags();
+        showSuccess('Tag updated', 'The tag has been updated.');
+      } else {
+        showError('Failed to update tag');
+      }
+    } finally {
+      setEditingTag(null);
+      setLoading(false);
+    }
+  };
 
   const handleEdit = (tag: Tag) => {
     setEditingTag(tag);
-  };
-
-  const handleSave = (tagId: string, newName: string) => {
-    setTags(tags.map(tag => 
-      tag.id === tagId 
-        ? { ...tag, name: newName }
-        : tag
-    ));
-    setEditingTag(null);
-  };
-
-  const handleCreateTag = (newName: string) => {
-    const newTag = {
-      id: `tag-${Date.now()}`,
-      name: newName,
-      createdAt: new Date().toISOString(),
-      postCount: 0,
-    };
-    setTags([newTag, ...tags]);
-  };
-
-  const handleDelete = (tagId: string) => {
-    if (confirm('Are you sure you want to delete this tag?')) {
-      setTags(tags.filter(tag => tag.id !== tagId));
-    }
   };
 
   const handleCancel = () => {
@@ -73,6 +131,17 @@ export function TagsPageClient() {
     setCurrentPage(page);
   };
 
+  const filteredTags = tags.filter(tag => {
+    const matchesSearch = tag.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterType === 'all' || 
+      (filterType === 'newest' && isWithin24Hours(tag.createdAt));
+    return matchesSearch && matchesFilter;
+  });
+
+  const totalPages = Math.ceil(filteredTags.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTags = filteredTags.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   const stats = [
     { label: 'Total Tags', value: tags.length, color: 'default' as const },
     { label: 'Active Tags', value: filteredTags.length, color: 'default' as const },
@@ -90,13 +159,30 @@ export function TagsPageClient() {
         title="Tags Management"
         description="Manage blog tags and categories"
         buttonText="Add New Tag"
-        onAddClick={() => {
-          const tagName = prompt('Enter tag name:');
-          if (tagName && tagName.trim()) {
-            handleCreateTag(tagName.trim());
-          }
-        }}
+        onAddClick={() => setShowAddModal(true)}
       />
+      <Modal isOpen={showAddModal} onClose={() => { setShowAddModal(false); setNewTagName(''); }} title="Add New Tag">
+        <input
+          className="w-full border rounded px-3 py-2 mb-4"
+          placeholder="Tag name"
+          value={newTagName}
+          onChange={e => setNewTagName(e.target.value)}
+          autoFocus
+        />
+        <div className="flex justify-end gap-2">
+          <button className="px-4 py-2 bg-gray-200 rounded" onClick={() => { setShowAddModal(false); setNewTagName(''); }}>Cancel</button>
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+            onClick={async () => {
+              if (newTagName.trim()) {
+                await handleCreateTag(newTagName.trim());
+                setShowAddModal(false);
+                setNewTagName('');
+              }
+            }}
+          >Add</button>
+        </div>
+      </Modal>
 
       <AdminStats stats={stats} />
 

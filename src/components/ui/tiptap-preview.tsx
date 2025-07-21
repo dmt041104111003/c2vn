@@ -26,6 +26,14 @@ interface TipTapPreviewProps {
   className?: string;
 }
 
+function autoImageHtml(html: string): string {
+  if (!html) return '';
+  return html.replace(/(?<!["'=])\bhttps?:\/\/(?:[\w.-]+)\/(?:[\w\/-]+)\.(?:jpg|jpeg|png|gif|webp|svg)(\?[^\s<]*)?/gi, (url) => {
+    if (/<img[^>]*src=["']?${url}["']?/.test(html)) return url;
+    return `<img src="${url}" alt="image" style="max-width:100%;border-radius:8px;margin:8px 0;box-shadow:0 2px 8px #0002;" />`;
+  });
+}
+
 export function TipTapPreview({ content, className = "" }: TipTapPreviewProps) {
   const [isClient, setIsClient] = useState(false);
 
@@ -109,6 +117,7 @@ export function TipTapPreview({ content, className = "" }: TipTapPreviewProps) {
 
   return (
     <div className={`prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto max-w-none ${className}`}>
+
       <EditorContent 
         editor={editor} 
         className="focus:outline-none"

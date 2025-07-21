@@ -20,9 +20,9 @@ export function AdminHeader({ title, description, buttonText, onAddClick }: Admi
       </div>
       <button 
         onClick={onAddClick}
-        className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        className="mt-4 sm:mt-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-blue-300 bg-white/60 text-blue-700 text-sm font-semibold shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 transition-all duration-150"
       >
-        <Plus className="h-4 w-4 mr-2" />
+        <Plus className="h-4 w-4" />
         {buttonText}
       </button>
     </div>

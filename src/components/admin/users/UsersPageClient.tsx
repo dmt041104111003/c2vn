@@ -7,25 +7,8 @@ import { AdminStats } from '~/components/admin/common/AdminStats';
 import { AdminFilters } from '~/components/admin/common/AdminFilters';
 import { UserTable } from '~/components/admin/users/UserTable';
 import { Pagination } from '~/components/ui/pagination';
-
-function AddUserModal({ open, onClose, onCreate }: { open: boolean, onClose: () => void, onCreate: (address: string, name: string) => void }) {
-  const [address, setAddress] = useState('');
-  const [name, setName] = useState('');
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-lg font-bold mb-4">Add New User</h2>
-        <input className="w-full border rounded px-3 py-2 mb-2" placeholder="Wallet address" value={address} onChange={e => setAddress(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2 mb-4" placeholder="Name (optional)" value={name} onChange={e => setName(e.target.value)} />
-        <div className="flex justify-end gap-2">
-          <button className="px-4 py-2 bg-gray-200 rounded" onClick={onClose}>Cancel</button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={() => { onCreate(address, name); setAddress(''); setName(''); }}>Add</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import Modal from '~/components/admin/common/Modal';
+import { useToastContext } from '~/components/toast-provider';
 
 export function UsersPageClient() {
   const [users, setUsers] = useState<User[]>([]);
@@ -34,7 +17,10 @@ export function UsersPageClient() {
   const [filterType, setFilterType] = useState<'all' | 'active' | 'inactive' | 'admin' | 'user'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [newUserAddress, setNewUserAddress] = useState('');
+  const [newUserName, setNewUserName] = useState('');
   const [currentUserAddress, setCurrentUserAddress] = useState<string | null>(null);
+  const { showSuccess, showError } = useToastContext();
 
   useEffect(() => {
     fetchUsers();
@@ -70,13 +56,14 @@ export function UsersPageClient() {
         body: JSON.stringify({ address, name })
       });
       if (!res.ok) {
-        alert('Failed to create user');
+        showError('Failed to create user');
         return;
       }
       await fetchUsers();
       setShowAddModal(false);
+      showSuccess('User created', 'User has been created successfully.');
     } catch (e) {
-      alert('Failed to create user');
+      showError('Failed to create user');
     }
   };
 
@@ -92,12 +79,13 @@ export function UsersPageClient() {
         body: JSON.stringify({ address: user.address })
       });
       if (!res.ok) {
-        alert('Failed to delete user');
+        showError('Failed to delete user');
         return;
       }
       await fetchUsers();
+      showSuccess('User deleted', 'User has been deleted.');
     } catch (e) {
-      alert('Failed to delete user');
+      showError('Failed to delete user');
     }
   };
 
@@ -177,7 +165,35 @@ export function UsersPageClient() {
         buttonText="Add New User"
         onAddClick={() => setShowAddModal(true)}
       />
-      <AddUserModal open={showAddModal} onClose={() => setShowAddModal(false)} onCreate={handleCreateUser} />
+      <Modal isOpen={showAddModal} onClose={() => { setShowAddModal(false); setNewUserAddress(''); setNewUserName(''); }} title="Add New User">
+        <input
+          className="w-full border rounded px-3 py-2 mb-2"
+          placeholder="Wallet address"
+          value={newUserAddress}
+          onChange={e => setNewUserAddress(e.target.value)}
+          autoFocus
+        />
+        <input
+          className="w-full border rounded px-3 py-2 mb-4"
+          placeholder="Name (optional)"
+          value={newUserName}
+          onChange={e => setNewUserName(e.target.value)}
+        />
+        <div className="flex justify-end gap-2">
+          <button className="px-4 py-2 bg-gray-200 rounded" onClick={() => { setShowAddModal(false); setNewUserAddress(''); setNewUserName(''); }}>Cancel</button>
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded"
+            onClick={async () => {
+              if (newUserAddress.trim()) {
+                await handleCreateUser(newUserAddress.trim(), newUserName.trim());
+                setShowAddModal(false);
+                setNewUserAddress('');
+                setNewUserName('');
+              }
+            }}
+          >Add</button>
+        </div>
+      </Modal>
       <AdminStats stats={stats} />
       <AdminFilters
         searchTerm={searchTerm}

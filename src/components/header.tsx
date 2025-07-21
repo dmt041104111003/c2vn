@@ -76,7 +76,7 @@ export default function Header() {
             </Link>
             {session && isAdmin && (
               <Link
-                href="/admin"
+                href="/admin/posts"
                 className="inline-flex items-center gap-2 rounded-sm border border-white/30 bg-gray-800/50 px-4 py-2 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:border-white/50 hover:bg-gray-700/50"
               >
                 <span>Admin Panel</span>
@@ -168,7 +168,7 @@ export default function Header() {
               {session && isAdmin && (
                 <div className="pt-2 border-t border-white/10">
                   <Link
-                    href="/admin"
+                    href="/admin/posts"
                     onClick={closeMenu}
                     className="inline-flex items-center gap-2 rounded-sm border border-white/30 bg-gray-800/50 px-4 py-2 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:border-white/50 hover:bg-gray-700/50"
                   >

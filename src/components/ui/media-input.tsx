@@ -12,12 +12,14 @@ interface Media {
 interface MediaInputProps {
   onMediaAdd?: (media: Media) => void;
   onMediaRemove?: () => void;
+  mediaType?: 'image' | 'youtube';
 }
 
-export default function MediaInput({ onMediaAdd, onMediaRemove }: MediaInputProps) {
+export default function MediaInput({ onMediaAdd, onMediaRemove, mediaType = 'image' }: MediaInputProps) {
   const [inputValue, setInputValue] = useState('');
   const [currentMedia, setCurrentMedia] = useState<Media | null>(null);
   const [error, setError] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const extractYouTubeVideoId = (url: string): string | null => {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
@@ -110,6 +112,23 @@ export default function MediaInput({ onMediaAdd, onMediaRemove }: MediaInputProp
     setCurrentMedia(null);
   };
 
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const media = { type: 'image' as const, url: dataUrl, id: dataUrl };
+      setCurrentMedia(media);
+      setInputValue(dataUrl);
+      if (onMediaAdd) {
+        onMediaAdd(media);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const clearInput = () => {
     setInputValue('');
     setCurrentMedia(null);
@@ -121,44 +140,43 @@ export default function MediaInput({ onMediaAdd, onMediaRemove }: MediaInputProp
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onPaste={handlePaste}
-          placeholder="Paste image or YouTube link here..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        {inputValue && (
+      {mediaType === 'image' && (
+        <div className="flex flex-col items-center gap-2">
           <button
-            onClick={clearInput}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
-            title="Clear input"
+            type="button"
+            className="inline-flex items-center px-3 py-2 text-sm font-medium bg-blue-100 text-blue-800 rounded hover:bg-blue-200 border border-blue-200"
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload image from your computer"
           >
-            <X className="h-4 w-4 text-gray-400" />
+            Upload image
           </button>
-        )}
-      </div>
-
-      {error && (
-        <div className="text-red-500 text-sm">{error}</div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            title="Upload image from your computer"
+            placeholder="Choose image file..."
+          />
+          {currentMedia?.type === 'image' && (
+            <img
+              src={currentMedia.url}
+              alt="Preview"
+              className="max-w-full max-h-48 rounded-lg shadow-md"
+            />
+          )}
+        </div>
       )}
-
-      {currentMedia && (
-        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-          <div className="flex items-center gap-2 mb-3">
-            {currentMedia.type === 'youtube' ? (
-              <Youtube className="h-5 w-5 text-red-500" />
-            ) : (
-              <ImageIcon className="h-5 w-5 text-blue-500" />
-            )}
-            <span className="font-medium">
-              {currentMedia.type === 'youtube' ? 'YouTube Video' : 'Image'} Preview
-            </span>
-          </div>
-
-          {currentMedia.type === 'youtube' ? (
+      {mediaType === 'youtube' && (
+        <div className="flex flex-col items-center gap-2">
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Paste YouTube video link here..."
+            onChange={e => onMediaAdd && onMediaAdd({ type: 'youtube', url: e.target.value, id: e.target.value })}
+          />
+          {currentMedia?.type === 'youtube' && (
             <div className="youtube-video">
               <iframe
                 src={`https://www.youtube.com/embed/${currentMedia.id}`}
@@ -169,24 +187,7 @@ export default function MediaInput({ onMediaAdd, onMediaRemove }: MediaInputProp
                 className="w-full h-48 rounded-lg"
               />
             </div>
-          ) : (
-            <div className="flex justify-center">
-              <img
-                src={currentMedia.url}
-                alt="Preview"
-                className="max-w-full max-h-48 rounded-lg shadow-md"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  setError('Cannot load image. Please check the link.');
-                }}
-              />
-            </div>
           )}
-
-          <div className="mt-3 text-sm text-gray-600">
-            <div className="break-all">{currentMedia.url}</div>
-          </div>
         </div>
       )}
     </div>

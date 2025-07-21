@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Post, mockPosts, ITEMS_PER_PAGE, isWithin24Hours } from '~/constants/posts';
 import { AdminHeader } from '~/components/admin/common/AdminHeader';
 import { AdminFilters } from '~/components/admin/common/AdminFilters';
@@ -9,13 +9,36 @@ import { PostStats } from '~/components/admin/posts/PostStats';
 import { PostEditor } from '~/components/admin/posts/PostEditor';
 import { Pagination } from '~/components/ui/pagination';
 import { BarChart3, Edit3 } from 'lucide-react';
+import { useToastContext } from '~/components/toast-provider';
+import { AdminStats } from '~/components/admin/common/AdminStats';
 
 export function PostsPageClient() {
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [activeTab, setActiveTab] = useState<'management' | 'create'>('management');
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  useEffect(() => { setIsClient(true); }, []);
+  useEffect(() => {
+    if (activeTab === 'management') {
+      setLoading(true);
+      fetch('/api/admin/posts')
+        .then(res => res.json())
+        .then(data => setPosts(Array.isArray(data.posts) ? data.posts : []))
+        .finally(() => setLoading(false));
+    }
+  }, [activeTab]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeTab, setActiveTab] = useState<'management' | 'create'>('management');
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const years = useMemo(() => {
+    const allYears = posts.map(p => new Date(p.createdAt).getFullYear());
+    const merged = Array.from(new Set([...allYears]));
+    merged.sort((a, b) => b - a);
+    return merged;
+  }, [posts]);
+  const postsOfYear = useMemo(() => posts.filter(p => new Date(p.createdAt).getFullYear() === selectedYear), [posts, selectedYear]);
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -44,12 +67,29 @@ export function PostsPageClient() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedPosts = filteredPosts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const handleEdit = (post: Post) => {
-    console.log('Edit post:', post);
+  const handleEdit = async (post: Post) => {
+    const res = await fetch(`/api/admin/posts/${post.id}`);
+    const data = await res.json();
+    setEditingPost(data.post);
+    setActiveTab('create');
   };
 
-  const handleDelete = (postId: string) => {
-    setPosts(posts.filter(post => post.id !== postId));
+  const { showSuccess, showError } = useToastContext();
+
+  const handleDelete = async (postId: string) => {
+    try {
+      const res = await fetch(`/api/admin/posts/${postId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setPosts(posts => posts.filter(post => post.id !== postId));
+        showSuccess('Post deleted', 'The post has been deleted.');
+      } else {
+        showError('Failed to delete post');
+      }
+    } catch {
+      showError('Failed to delete post');
+    }
   };
 
   const handleStatusChange = (postId: string, newStatus: 'published' | 'draft' | 'archived') => {
@@ -72,24 +112,38 @@ export function PostsPageClient() {
     setCurrentPage(page);
   };
 
-  const handleSavePost = (newPost: any) => {
-    const post: Post = {
-      id: `post-${Date.now()}`,
-      title: newPost.title,
-      content: newPost.content,
-      excerpt: newPost.excerpt,
-      author: newPost.author,
-      status: newPost.status,
-      tags: newPost.tags,
-      createdAt: newPost.createdAt,
-      updatedAt: newPost.updatedAt,
-      views: newPost.views,
-      likes: newPost.likes,
-      comments: newPost.comments,
-      shares: newPost.shares,
-    };
-    
-    setPosts([post, ...posts]);
+  const handleSavePost = async (newPost: any) => {
+    try {
+      if (editingPost && editingPost.id) {
+        const res = await fetch(`/api/admin/posts/${editingPost.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPost),
+        });
+        if (res.ok) {
+          setPosts(posts => posts.map(p => p.id === editingPost.id ? { ...p, ...newPost, id: editingPost.id } : p));
+          showSuccess('Post updated', 'The post has been updated.');
+        } else {
+          showError('Failed to update post');
+        }
+      } else {
+        const res = await fetch('/api/admin/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPost),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setPosts(posts => [data.post, ...posts]);
+          showSuccess('Post created', 'The post has been created.');
+        } else {
+          showError('Failed to create post');
+        }
+      }
+    } catch {
+      showError('Failed to save post');
+    }
+    setEditingPost(null);
     setActiveTab('management');
   };
 
@@ -100,6 +154,26 @@ export function PostsPageClient() {
     { value: 'archived', label: 'Archived' },
   ];
 
+  const statusCounts = posts.reduce((acc, post) => {
+    acc[post.status] = (acc[post.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const allStatuses = Object.keys(statusCounts);
+  const statusColors: Record<string, string> = {
+    published: 'blue',
+    draft: 'green',
+    archived: 'red',
+  };
+  const stats = [
+    { label: 'Total Posts', value: posts.length, color: 'default' as const },
+    ...allStatuses.map(status => ({
+      label: status.charAt(0).toUpperCase() + status.slice(1),
+      value: statusCounts[status],
+      color: (statusColors[status] as any) || 'default',
+    })),
+  ];
+
+  if (!isClient) return null;
   return (
     <div className="space-y-6" suppressHydrationWarning>
       <AdminHeader
@@ -108,6 +182,7 @@ export function PostsPageClient() {
         buttonText="Create New Post"
         onAddClick={() => setActiveTab('create')}
       />
+      <AdminStats stats={stats} />
 
       <div className="border-b border-gray-200" suppressHydrationWarning>
         <nav className="-mb-px flex space-x-8" suppressHydrationWarning>
@@ -142,7 +217,7 @@ export function PostsPageClient() {
 
       {activeTab === 'management' ? (
         <>
-          <PostStats posts={posts} />
+          <PostStats posts={postsOfYear} year={selectedYear} />
 
           <AdminFilters
             searchTerm={searchTerm}
@@ -155,7 +230,7 @@ export function PostsPageClient() {
 
           <div className="bg-white rounded-lg shadow" suppressHydrationWarning>
             <PostTable
-              posts={paginatedPosts}
+              posts={paginatedPosts || []}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onStatusChange={handleStatusChange}
@@ -171,7 +246,7 @@ export function PostsPageClient() {
           </div>
         </>
       ) : (
-        <PostEditor onSave={handleSavePost} />
+        <PostEditor onSave={handleSavePost} post={editingPost} />
       )}
     </div>
   );

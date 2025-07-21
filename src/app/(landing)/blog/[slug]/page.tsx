@@ -1,42 +1,38 @@
 "use client";
 
-import { notFound } from "next/navigation";
-import { blogs } from "~/constants/blogs";
-import { images } from "~/public/images";
+import { notFound, useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, MessageCircle, Share2, ThumbsUp } from "lucide-react";
 import Header from "~/components/header";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ShareModal from "~/components/blog/ShareModal";
 import CommentSection from "~/components/blog/CommentSection";
 import ReactionCount from "~/components/blog/ReactionCount";
-import { DEMO_COMMENTS } from "../../../../constants/comments";
 
-interface BlogDetailPageProps {
-  params: {
-    slug: string;
-  };
-}
-
-export default function BlogDetailPage({ params }: BlogDetailPageProps) {
-  const blog = blogs.find((b) => b.slug === params.slug);
+export default function BlogDetailPage() {
+  const params = useParams();
+  const [post, setPost] = useState<any>(null);
   const [showReactions, setShowReactions] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  if (!blog) {
-    notFound();
-  }
+  useEffect(() => {
+    fetch(`/api/admin/posts/${params.slug}?public=1`)
+      .then(res => res.json())
+      .then(data => setPost(data.post));
+  }, [params.slug]);
 
-  const handleReactionClick = (reaction: string) => {
-    console.log(`Reaction clicked: ${reaction}`);
-    setShowReactions(false);
-  };
+  if (!post) return <div className="text-center py-20 text-gray-400">Loading...</div>;
+
+  function getYoutubeIdFromUrl(url: string) {
+    if (!url) return '';
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/#\s]{11})/);
+    return match ? match[1] : '';
+  }
 
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-950 to-gray-900">
       <Header />
-      
       <div className="pt-20">
         <div className="mx-auto max-w-4xl px-6 py-8 lg:px-8">
           <Link
@@ -47,46 +43,66 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
             Back to Blog
           </Link>
         </div>
-
         <article className="mx-auto max-w-4xl px-6 pb-20 lg:px-8">
           <header className="mb-12">
             <div className="mb-6">
               <time className="text-sm text-gray-400">
-                {new Date(blog.date).toLocaleDateString("en-US", {
+                {new Date(post.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
                 })}
               </time>
               <span className="mx-2 text-gray-500">•</span>
-              <span className="text-sm text-gray-400">by {blog.author}</span>
+              <span className="text-sm text-gray-400">by {post.author || 'Admin'}</span>
             </div>
-            
             <h1 className="mb-8 text-3xl font-bold text-white leading-tight break-words lg:text-5xl xl:text-6xl">
-              {blog.title}
+              {post.title}
             </h1>
-            
-            <p className="text-lg text-gray-300 leading-relaxed lg:text-xl">
-              {blog.excerpt}
-            </p>
+            {Array.isArray(post.tags) && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {post.tags.map((tag: any) => (
+                  <span key={tag.id || tag} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {tag.name || tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </header>
-
           <div className="mb-12">
             <div className="relative h-64 w-full overflow-hidden rounded-lg sm:h-80 lg:h-96">
-              <Image
-                src={blog.image}
-                alt={blog.title}
-                fill
-                className="object-cover"
-                priority
-              />
+              {post.media && post.media.length > 0 ? (
+                post.media[0].type === 'YOUTUBE' ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${post.media[0].id || getYoutubeIdFromUrl(post.media[0].url)}`}
+                    title={post.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                ) : (
+                  <img
+                    src={post.media[0].url}
+                    alt={post.title}
+                    className="object-cover w-full h-full"
+                  />
+                )
+              ) : (
+                <Image
+                  src="/images/landings/01.png"
+                  alt={post.title}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              )}
             </div>
           </div>
-
           <div className="prose prose-invert prose-lg max-w-none">
             <div 
               className="text-gray-300 leading-relaxed space-y-6"
-              dangerouslySetInnerHTML={{ __html: blog.content }}
+              dangerouslySetInnerHTML={{ __html: post.content }}
             />
           </div>
 
@@ -103,8 +119,8 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                 }}
               />
               <div className="flex items-center gap-4">
-                <span>{DEMO_COMMENTS.length} comments</span>
-                <span>{blog.shares} shares</span>
+                <span>{post.comments?.length || 0} comments</span>
+                <span>{post.shares || 0} shares</span>
               </div>
             </div>
             <div className="flex items-center border-t border-gray-800 pt-4">
@@ -159,13 +175,13 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                 <span className="font-medium">Share</span>
               </button>
             </div>
-            <CommentSection comments={DEMO_COMMENTS} />
+            <CommentSection comments={post.comments || []} />
           </div>
 
           <footer className="mt-16 pt-8 border-t border-gray-800">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div className="text-sm text-gray-400">
-                Published on {new Date(blog.date).toLocaleDateString("en-US", {
+                Published on {new Date(post.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -184,7 +200,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
       <ShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        blogTitle={blog.title}
+        blogTitle={post.title}
         blogUrl={typeof window !== 'undefined' ? window.location.href : ''}
       />
     </main>

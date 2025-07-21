@@ -10,6 +10,12 @@ interface TagTableProps {
   onCancel: () => void;
 }
 
+function formatDateTime(dateString: string) {
+  const date = new Date(dateString);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 export function TagTable({
   tags,
   editingTag,
@@ -19,8 +25,8 @@ export function TagTable({
   onCancel,
 }: TagTableProps) {
   return (
-    <div className="overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="overflow-x-auto">
+      <table className="min-w-[600px] md:min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -62,7 +68,7 @@ export function TagTable({
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(tag.createdAt).toLocaleDateString()}
+                {formatDateTime(tag.createdAt)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex items-center justify-end space-x-2">
