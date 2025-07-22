@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 
 interface CommentInputProps {
-  onSubmit: (comment: string) => void;
+  onSubmit: (comment: string, user?: { id: string; address: string; image: string | null } | null) => void;
   placeholder?: string;
+  user?: { id: string; address: string; image: string | null } | null;
 }
 
-export default function CommentInput({ onSubmit, placeholder = "Write a comment..." }: CommentInputProps) {
+export default function CommentInput({ onSubmit, placeholder = "Write a comment...", user }: CommentInputProps) {
   const [commentText, setCommentText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +38,7 @@ export default function CommentInput({ onSubmit, placeholder = "Write a comment.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (commentText.trim()) {
-      onSubmit(commentText);
+      onSubmit(commentText, user);
       setCommentText("");
     }
   };
@@ -64,7 +65,11 @@ export default function CommentInput({ onSubmit, placeholder = "Write a comment.
     <div className="bg-gray-800/30 rounded-2xl p-3 border border-gray-700/50">
       <div className="flex items-start gap-3">
         <div className="relative">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0"></div>
+          {user && user.image ? (
+            <img src={user.image} alt="avatar" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0"></div>
+          )}
           <button 
             className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-600 rounded-full flex items-center justify-center"
             title="Change commenting identity"

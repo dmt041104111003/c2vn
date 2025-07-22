@@ -9,10 +9,10 @@ import { members } from "~/constants/members";
 import { useState } from "react";
 
 export default function MemberPage() {
-  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleMemberClick = (member: any) => {
+  const handleMemberClick = (member: Member) => {
     setSelectedMember(member);
     setIsModalOpen(true);
   };

@@ -16,21 +16,78 @@ export default function Blog({
   datetime: string;
   slug: string;
 }) {
+  // Helper lấy id YouTube từ url
+  function getYoutubeId(url: string) {
+    if (!url) return '';
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/#\s]{11})/);
+    return match ? match[1] : '';
+  }
+  function isYoutubeUrl(url: string) {
+    return typeof url === 'string' && (url.includes('youtube.com') || url.includes('youtu.be'));
+  }
+  function getYoutubeEmbedUrl(url: string) {
+    if (!url) return '';
+    if (url.includes('embed/')) return url;
+    if (url.includes('watch?v=')) return url.replace('watch?v=', 'embed/');
+    if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
+    return url;
+  }
+  function cleanYoutubeUrl(url: string) {
+    if (!url) return '';
+    const match = url.match(/(https?:\/\/www\.youtube\.com\/watch\?v=[^&\s]+)/);
+    return match ? match[1] : url;
+  }
+  function getYoutubeIdFromUrl(url: string) {
+    if (!url) return '';
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/#\s]{11})/);
+    return match ? match[1] : '';
+  }
+  const isMediaObj = typeof image === 'object' && image !== null;
+  const isYoutube = isMediaObj && image.type === 'YOUTUBE';
+  const rawUrl = isMediaObj ? image.url : image;
+  const cleanUrl = cleanYoutubeUrl(rawUrl);
+  const youtubeId = isYoutube ? (image.id || getYoutubeIdFromUrl(cleanUrl)) : '';
+  const imgUrl = isMediaObj ? image.url : (typeof image === 'string' ? image : '');
   return (
     <div className="rounded-sm text-card-foreground px-5 py-3 group relative overflow-hidden border border-white/20 bg-gray-800/50 backdrop-blur-sm shadow-xl transition-all duration-300 hover:border-white/40 hover:shadow-2xl">
       <Link className="block" href={`/blog/${slug}`}>
         <div className="relative aspect-video overflow-hidden">
-          <Image
-            alt={title}
-            loading="lazy"
-            width="800"
-            height="400"
-            decoding="async"
-            data-nimg="1"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            style={{ color: "transparent" }}
-            src={image}
-          />
+          {isYoutube && youtubeId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}`}
+              title={title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="h-full w-full object-cover rounded"
+            />
+          ) : (
+            imgUrl ? (
+              <Image
+                alt={title}
+                loading="lazy"
+                width="800"
+                height="400"
+                decoding="async"
+                data-nimg="1"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                style={{ color: "transparent" }}
+                src={imgUrl}
+              />
+            ) : (
+              <Image
+                alt={title}
+                loading="lazy"
+                width="800"
+                height="400"
+                decoding="async"
+                data-nimg="1"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                style={{ color: "transparent" }}
+                src={"/images/landings/01.png"}
+              />
+            )
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent"></div>
         </div>
         <div className="p-6">

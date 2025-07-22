@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { members } from "~/constants/members";
-import { StaticImageData } from "next/image";
 
 interface MemberModalProps {
   member: (typeof members[0] & { skills?: string[] }) | null;
